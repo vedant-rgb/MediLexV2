@@ -1,8 +1,11 @@
 package com.medilexV2.medPlus.thirdPartyService;
 
+import com.medilexV2.medPlus.dto.OcrResponse;
 import com.medilexV2.medPlus.dto.Products;
+import com.medilexV2.medPlus.entity.InvoiceNumber;
 import com.medilexV2.medPlus.entity.Medical;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
+import com.medilexV2.medPlus.repository.InvoiceNumberRepository;
 import com.medilexV2.medPlus.repository.MedicalRepository;
 import org.apache.logging.log4j.Logger;
 import org.springframework.core.ParameterizedTypeReference;
@@ -25,13 +28,15 @@ public class OcrService {
 
     private final RestTemplate restTemplate;
     private final MedicalRepository medicalRepository;
+    private final InvoiceNumberRepository invoiceNumberRepository;
     Logger logger = org.apache.logging.log4j.LogManager.getLogger(OcrService.class);
     private final String flaskApiUrl = "http://localhost:5000/process_file";
 
-
-    public OcrService(RestTemplate restTemplate, MedicalRepository medicalRepository) {
+    public OcrService(RestTemplate restTemplate, MedicalRepository medicalRepository, InvoiceNumberRepository invoiceNumberRepository) {
         this.restTemplate = restTemplate;
         this.medicalRepository = medicalRepository;
+        this.invoiceNumberRepository = invoiceNumberRepository;
+
     }
 
     public List<Products> processReceipt(MultipartFile file) throws IOException {
@@ -52,34 +57,61 @@ public class OcrService {
 
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
             logger.info("Creating request entity: " + requestEntity);
-            List<Products> response = restTemplate.exchange(
+
+            ResponseEntity<OcrResponse> responseEntity = restTemplate.exchange(
                     flaskApiUrl,
                     HttpMethod.POST,
                     requestEntity,
-                    new ParameterizedTypeReference<List<Products>>() {}
-            ).getBody();
-            logger.info("Received response: " + response);
-            Medical currentuser = getCurrentuser();
-            logger.info("Current user: " + currentuser);
+                    new ParameterizedTypeReference<OcrResponse>() {}
+            );
 
-            Medical medical = medicalRepository.findByEmail(currentuser.getUsername()).orElseThrow(()->new ResourceNotFoundException("No medical found"));
-            logger.info("Medcial email : "+medical.getUsername());
-            medical.setProducts(response);
+            OcrResponse ocrResponse = responseEntity.getBody();
+            logger.info("Received response: " + ocrResponse); // Log the full OcrResponse object
+
+            if (ocrResponse == null) {
+                throw new IOException("Empty response from Flask API");
+            }
+
+            // Extract products and invoice number
+            List<Products> products = ocrResponse.getProducts();
+            String invoiceNumber = ocrResponse.getInvoiceNumber();
+            logger.info("Extracted invoice number: " + invoiceNumber); // Should now show "CR/98"
+            logger.info("Extracted products: " + products);
+
+            Optional<InvoiceNumber> byInvoiceNumber = invoiceNumberRepository.findByInvoiceNumber(invoiceNumber);
+            if(byInvoiceNumber.isPresent()){
+                logger.info("Invoice number already exists in database: " + invoiceNumber);
+                throw new RuntimeException("This Bill is already uploaded in database");
+            }
+            InvoiceNumber invoiceNumberEntity = new InvoiceNumber();
+            invoiceNumberEntity.setInvoiceNumber(invoiceNumber);
+            invoiceNumberRepository.save(invoiceNumberEntity);
+
+
+
+            Medical currentUser = getCurrentUser();
+            logger.info("Current user: " + currentUser);
+
+            Medical medical = medicalRepository.findByEmail(currentUser.getUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException("No medical found"));
+            logger.info("Medical email: " + medical.getUsername());
+
+            medical.setProducts(products);
+            // Optionally store invoiceNumber in Medical entity if it has such a field
+            // medical.setInvoiceNumber(invoiceNumber);
+
             Medical saved = medicalRepository.save(medical);
-            logger.info("SAved Medcial email : "+medical.getUsername());
+            logger.info("Saved Medical email: " + saved.getUsername());
             logger.info(saved);
-            return response;
 
+            return products;
 
         } catch (ResourceAccessException e) {
             throw new IOException("Failed to connect to Flask server. Is it running at " + flaskApiUrl + "?", e);
         }
     }
 
-
-    private Medical getCurrentuser(){
+    private Medical getCurrentUser() {
         return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
-
-
 }
