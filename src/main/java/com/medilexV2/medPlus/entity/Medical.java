@@ -21,6 +21,7 @@ public class Medical implements UserDetails {
     private String medicalAddress;
     private String licenseNumber;
     private String contactNumber;
+    private Boolean firstTimeLogin;
 
 
     private GeoJsonPoint location;
@@ -30,7 +31,7 @@ public class Medical implements UserDetails {
     public Medical() {
     }
 
-    public Medical(String id, String email, String password, String medicalName, String medicalAddress, String licenseNumber, String contactNumber, GeoJsonPoint location, List<String> photos, List<Products> products) {
+    public Medical(String id, String email, String password, String medicalName, String medicalAddress, String licenseNumber, String contactNumber, Boolean firstTimeLogin, GeoJsonPoint location, List<String> photos, List<Products> products) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -38,9 +39,18 @@ public class Medical implements UserDetails {
         this.medicalAddress = medicalAddress;
         this.licenseNumber = licenseNumber;
         this.contactNumber = contactNumber;
+        this.firstTimeLogin = true;
         this.location = location;
         this.photos = photos;
         this.products = products;
+    }
+
+    public Boolean getFirstTimeLogin() {
+        return firstTimeLogin;
+    }
+
+    public void setFirstTimeLogin(Boolean firstTimeLogin) {
+        this.firstTimeLogin = firstTimeLogin;
     }
 
     public String getId() {

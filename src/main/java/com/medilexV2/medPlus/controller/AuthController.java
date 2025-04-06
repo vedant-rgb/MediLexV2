@@ -2,16 +2,14 @@ package com.medilexV2.medPlus.controller;
 
 import com.medilexV2.medPlus.dto.LoginDTO;
 import com.medilexV2.medPlus.dto.LoginResponseDTO;
+import com.medilexV2.medPlus.dto.ResetPasswordDTO;
 import com.medilexV2.medPlus.dto.SignUpRequest;
 import com.medilexV2.medPlus.security.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -41,5 +39,15 @@ public class AuthController {
     @PostMapping("/signUp")
     public ResponseEntity<String> createNewTeacher(@RequestBody SignUpRequest signUpRequest){
         return new ResponseEntity<>(authService.signUp(signUpRequest), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/checkIsFirstTimeLogin")
+    public ResponseEntity<Boolean> checkIsFirstTimeLogin(){
+        return ResponseEntity.ok(authService.checkIsFirstTimeLogin());
+    }
+
+    @PostMapping("/resetPassword")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDTO resetPasswordDTO){
+        return ResponseEntity.ok(authService.resetPassword(resetPasswordDTO));
     }
 }

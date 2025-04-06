@@ -3,6 +3,7 @@ package com.medilexV2.medPlus.security;
 
 import com.medilexV2.medPlus.dto.LoginDTO;
 import com.medilexV2.medPlus.dto.LoginResponseDTO;
+import com.medilexV2.medPlus.dto.ResetPasswordDTO;
 import com.medilexV2.medPlus.dto.SignUpRequest;
 import com.medilexV2.medPlus.entity.Medical;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
@@ -57,6 +58,7 @@ public class AuthService {
             toBeSaved.setPhotos(new ArrayList<>());
             toBeSaved.setProducts(new ArrayList<>());
             toBeSaved.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
+            toBeSaved.setFirstTimeLogin(true);
             Medical saved = medicalRepository.save(toBeSaved);
             logger.info(saved);
             return "Successfully registered with Registration ID : " + saved.getEmail();
@@ -89,6 +91,30 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(medical);
 
         return new LoginResponseDTO(accessToken, refreshToken);
+    }
+
+
+    public Boolean checkIsFirstTimeLogin() {
+        Medical currUser = getCurrentuser();
+        Medical user = medicalRepository.findByEmail(currUser.getEmail()).orElseThrow(() -> new ResourceNotFoundException("Medical not found for email : " + currUser.getUsername()));
+        if(user.getFirstTimeLogin().equals(true)){
+            return true;
+        }
+        return false;
+    }
+
+    public String resetPassword(ResetPasswordDTO resetPasswordDTO) {
+        Medical currUser = getCurrentuser();
+        Medical user = medicalRepository.findByEmail(currUser.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("Medical not found for email : " + currUser.getUsername()));
+        String encoded = passwordEncoder.encode(resetPasswordDTO.getOldPassword());
+        if(!passwordEncoder.matches(resetPasswordDTO.getOldPassword(), currUser.getPassword())){
+            throw new RuntimeException("Old password is wrong");
+        }
+        user.setPassword(passwordEncoder.encode(resetPasswordDTO.getNewPassword()));
+        user.setFirstTimeLogin(false);
+        Medical savedUser = medicalRepository.save(user);
+        return "Password updated successfully";
     }
 
 

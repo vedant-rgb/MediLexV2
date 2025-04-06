@@ -1,17 +1,8 @@
 package com.medilexV2.medPlus.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.TextIndexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
-import javax.annotation.processing.Generated;
-import java.util.Objects;
 
-@RequiredArgsConstructor
-@Document(collection = "products")
 public class Products {
     @JsonProperty("HSN")
     private String hsn;

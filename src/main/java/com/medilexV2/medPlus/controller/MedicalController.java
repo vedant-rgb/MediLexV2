@@ -1,7 +1,12 @@
 package com.medilexV2.medPlus.controller;
 
+import com.medilexV2.medPlus.dto.BillingDTO;
 import com.medilexV2.medPlus.dto.Products;
+import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
+import com.medilexV2.medPlus.service.ExcelSheetDownloadService;
+import com.medilexV2.medPlus.service.MedicalService;
 import com.medilexV2.medPlus.thirdPartyService.OcrService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.Logger;
@@ -19,11 +24,15 @@ import java.util.List;
 @RequestMapping("/medical")
 public class MedicalController {
     private final OcrService ocrService;
+    private final MedicalService medicalService;
+    private final ExcelSheetDownloadService excelSheetDownloadService;
     Logger logger = org.apache.logging.log4j.LogManager.getLogger(MedicalController.class);
 
 
-    public MedicalController(OcrService ocrService) {
+    public MedicalController(OcrService ocrService, MedicalService medicalService, ExcelSheetDownloadService excelSheetDownloadService) {
         this.ocrService = ocrService;
+        this.medicalService = medicalService;
+        this.excelSheetDownloadService = excelSheetDownloadService;
     }
 
     @PostMapping("/upload")
@@ -45,5 +54,50 @@ public class MedicalController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Or an error message
         }
     }
+
+    @GetMapping("/products")
+    public ResponseEntity<List<Products>> getAllProductsForMedical() {
+        List<Products> products = medicalService.getProducts();
+        return ResponseEntity.ok(products);
+    }
+
+    @PutMapping("/product/update")
+    public ResponseEntity<Products> updateProduct(@RequestBody Products product) {
+        Products updated = medicalService.updateProductField(product);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/product/delete")
+    public ResponseEntity<String> deleteProduct(
+            @RequestParam String HSN,
+            @RequestParam String productName,
+            @RequestParam String batch,
+            @RequestParam String exp) {
+
+        medicalService.deleteProduct(HSN, productName, batch, exp);
+        return ResponseEntity.ok("Product deleted successfully.");
+    }
+
+
+
+    @GetMapping("/downloadExcel")
+    public void downloadExcel(HttpServletResponse response) throws IOException {
+        List<Products> products = medicalService.getProducts();
+        excelSheetDownloadService.exportToExcel(products, response);
+    }
+
+    @PostMapping("/billing")
+    public ResponseEntity<String> processBilling(@RequestBody BillingDTO billingDTO) {
+        try {
+            medicalService.processBilling(billingDTO);
+            return ResponseEntity.ok("Billing processed successfully. Stock updated.");
+        } catch (IllegalArgumentException | ResourceNotFoundException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while processing billing.");
+        }
+    }
+
+
 
 }
