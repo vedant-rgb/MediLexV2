@@ -2,7 +2,6 @@ package com.medilexV2.medPlus.thirdPartyService;
 
 import com.medilexV2.medPlus.dto.Products;
 import com.medilexV2.medPlus.entity.Medical;
-import com.medilexV2.medPlus.entity.User;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
 import com.medilexV2.medPlus.repository.MedicalRepository;
 import org.apache.logging.log4j.Logger;
@@ -60,10 +59,14 @@ public class OcrService {
                     new ParameterizedTypeReference<List<Products>>() {}
             ).getBody();
             logger.info("Received response: " + response);
+            Medical currentuser = getCurrentuser();
+            logger.info("Current user: " + currentuser);
 
-            Medical medical = medicalRepository.findByEmail(getCurrentuser().getEmail()).orElseThrow(()->new ResourceNotFoundException("No medical found"));
+            Medical medical = medicalRepository.findByEmail(currentuser.getUsername()).orElseThrow(()->new ResourceNotFoundException("No medical found"));
+            logger.info("Medcial email : "+medical.getUsername());
             medical.setProducts(response);
             Medical saved = medicalRepository.save(medical);
+            logger.info("SAved Medcial email : "+medical.getUsername());
             logger.info(saved);
             return response;
 
@@ -74,8 +77,8 @@ public class OcrService {
     }
 
 
-    private User getCurrentuser(){
-        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    private Medical getCurrentuser(){
+        return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
 

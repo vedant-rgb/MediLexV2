@@ -1,6 +1,6 @@
 package com.medilexV2.medPlus.security;
 
-import com.medilexV2.medPlus.entity.User;
+import com.medilexV2.medPlus.entity.Medical;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -29,18 +29,18 @@ public class JWTService {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateAccessToken(User user){
+    public String generateAccessToken(Medical medical){
         return Jwts.builder()
-                .subject(user.getUsername())
+                .subject(medical.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() +1000*60*10))
                 .signWith(getSecretKey())
                 .compact();
     }
 
-    public String generateRefreshToken(User user){
+    public String generateRefreshToken(Medical medical){
         return Jwts.builder()
-                .subject(user.getUsername())
+                .subject(medical.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() +1000L*60*60*24*30*6))
                 .signWith(getSecretKey())

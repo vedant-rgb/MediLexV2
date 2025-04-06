@@ -13,8 +13,6 @@ public class MedicalService {
         this.medicalRepository = medicalRepository;
     }
 
-    public Medical saveMedical(Medical medical) {
-        return medicalRepository.save(medical);
-    }
+
 
 }

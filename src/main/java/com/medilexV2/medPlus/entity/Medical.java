@@ -4,16 +4,19 @@ import com.medilexV2.medPlus.dto.Products;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
 import java.util.List;
 
-@Document(collation = "MedicalStore")
-public class Medical {
+@Document(collection = "MedicalStore")
+public class Medical implements UserDetails {
     @Id
     private String id;
 
     private String email;
-
+    private String password;
     private String medicalName;
     private String medicalAddress;
     private String licenseNumber;
@@ -27,9 +30,10 @@ public class Medical {
     public Medical() {
     }
 
-    public Medical(String id, String email, String medicalName, String medicalAddress, String licenseNumber, String contactNumber, GeoJsonPoint location, List<String> photos, List<Products> products) {
+    public Medical(String id, String email, String password, String medicalName, String medicalAddress, String licenseNumber, String contactNumber, GeoJsonPoint location, List<String> photos, List<Products> products) {
         this.id = id;
         this.email = email;
+        this.password = password;
         this.medicalName = medicalName;
         this.medicalAddress = medicalAddress;
         this.licenseNumber = licenseNumber;
@@ -111,6 +115,10 @@ public class Medical {
         this.products = products;
     }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     @Override
     public String toString() {
         return "Medical{" +
@@ -123,5 +131,20 @@ public class Medical {
                 ", photos=" + photos +
                 ", products=" + products +
                 '}';
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+    @Override
+    public String getPassword() {
+        return this.password;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
     }
 }
