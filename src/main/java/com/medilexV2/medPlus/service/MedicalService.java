@@ -1,23 +1,34 @@
 package com.medilexV2.medPlus.service;
 
-import com.medilexV2.medPlus.dto.BillingDTO;
-import com.medilexV2.medPlus.dto.BillingInfo;
-import com.medilexV2.medPlus.dto.Products;
+import com.medilexV2.medPlus.dto.*;
 import com.medilexV2.medPlus.entity.Medical;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
 import com.medilexV2.medPlus.repository.MedicalRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.geo.Point;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.NearQuery;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 @Service
 public class MedicalService {
 
-    private final MedicalRepository medicalRepository;
+    private final MongoTemplate mongoTemplate;
 
-    public MedicalService(MedicalRepository medicalRepository) {
+    private final MedicalRepository medicalRepository;
+    private final Logger logger = Logger.getLogger(MedicalService.class.getName());
+
+    public MedicalService(MongoTemplate mongoTemplate, MedicalRepository medicalRepository) {
+        this.mongoTemplate = mongoTemplate;
         this.medicalRepository = medicalRepository;
     }
 
@@ -140,11 +151,59 @@ public class MedicalService {
         medicalRepository.save(medical);
     }
 
+    public Medical updateLocation(LocationUpdateDto locationUpdateDto) {
+        Medical currentMedical=getCurrentuser();
+        Medical medical = medicalRepository.findById(currentMedical.getId())
+                .orElseThrow(() -> new RuntimeException("Medical store not found"));
+        GeoJsonPoint newLocation = new GeoJsonPoint(locationUpdateDto.getLongitude(), locationUpdateDto.getLatitude());
+        medical.setLocation(newLocation);
+        return medicalRepository.save(medical);
+    }
 
-
+    public Medical getMedicalById(String id) {
+        return medicalRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Medical store not found"));
+    }
 
 
     private Medical getCurrentuser(){
         return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    public List<Medical> getAllMedicals() {
+        List<Medical> medicals = medicalRepository.findAll();
+        if (medicals.isEmpty()) {
+            throw new ResourceNotFoundException("No medicals found");
+        }
+        return medicals;
+
+    }
+
+    public List<Medical> getNearestMedical(double latitude, double longitude, String productName) {
+        Point userLocation = new Point(longitude, latitude);
+        NearQuery nearQuery = NearQuery.near(userLocation)
+                .spherical(true)
+                .distanceMultiplier(6371.0)
+                .maxDistance(10.0)
+                .limit(2);
+        Criteria productCriteria = Criteria.where("products")
+                .elemMatch(Criteria.where("Product Name")
+                        .regex("^" + Pattern.quote(productName) + "$", "i"));
+
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.geoNear(nearQuery, "distance"), // distance field
+                Aggregation.match(productCriteria), // filter documents that contain product
+                Aggregation.limit(3) // return top 3
+        );
+        AggregationResults<Medical> results = mongoTemplate.aggregate(aggregation, "MedicalStore", Medical.class);
+        return results.getMappedResults();
+    }
+
+    public List<Medical> getAllMedical() {
+        List<Medical> medicals = medicalRepository.findAll();
+        if (medicals.isEmpty()) {
+            throw new ResourceNotFoundException("No medicals found");
+        }
+        return medicals;
     }
 }

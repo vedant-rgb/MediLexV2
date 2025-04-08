@@ -3,6 +3,8 @@ package com.medilexV2.medPlus.entity;
 import com.medilexV2.medPlus.dto.Products;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,8 +25,9 @@ public class Medical implements UserDetails {
     private String contactNumber;
     private Boolean firstTimeLogin;
 
-
+    @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
     private GeoJsonPoint location;
+
     private List<String> photos;
     private List<Products> products;
 
@@ -157,4 +160,5 @@ public class Medical implements UserDetails {
     public String getUsername() {
         return this.email;
     }
+
 }

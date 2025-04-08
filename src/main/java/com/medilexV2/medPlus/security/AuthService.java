@@ -121,4 +121,5 @@ public class AuthService {
     private Medical getCurrentuser(){
         return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
+
 }

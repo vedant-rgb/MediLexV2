@@ -1,22 +1,21 @@
 package com.medilexV2.medPlus.controller;
 
 import com.medilexV2.medPlus.dto.BillingDTO;
+import com.medilexV2.medPlus.dto.LocationUpdateDto;
+import com.medilexV2.medPlus.dto.MedicalDistanceDto;
 import com.medilexV2.medPlus.dto.Products;
+import com.medilexV2.medPlus.entity.Medical;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
 import com.medilexV2.medPlus.service.ExcelSheetDownloadService;
 import com.medilexV2.medPlus.service.MedicalService;
 import com.medilexV2.medPlus.thirdPartyService.OcrService;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -27,7 +26,6 @@ public class MedicalController {
     private final MedicalService medicalService;
     private final ExcelSheetDownloadService excelSheetDownloadService;
     Logger logger = org.apache.logging.log4j.LogManager.getLogger(MedicalController.class);
-
 
     public MedicalController(OcrService ocrService, MedicalService medicalService, ExcelSheetDownloadService excelSheetDownloadService) {
         this.ocrService = ocrService;
@@ -98,6 +96,27 @@ public class MedicalController {
         }
     }
 
+    @GetMapping("/getAllMedical")
+    public ResponseEntity<?> getAllMedical() {
+        List<Medical> medicals = medicalService.getAllMedical();
+        return ResponseEntity.ok(medicals);
+    }
 
+    @PostMapping("/update-location")
+    public ResponseEntity<Medical> updateLocation(@RequestBody LocationUpdateDto locationUpdateDto) {
+        Medical updatedMedical = medicalService.updateLocation(locationUpdateDto);
+        return ResponseEntity.ok(updatedMedical);
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<Medical> getMedicalById(@PathVariable String id) {
+        Medical medical = medicalService.getMedicalById(id);
+        return ResponseEntity.ok(medical);
+    }
+
+    @GetMapping("/nearest-medical")
+    public ResponseEntity<List<Medical>> getNearestMedical(@RequestParam double latitude, @RequestParam double longitude,@RequestParam String productName) {
+        List<Medical> nearestMedicals = medicalService.getNearestMedical(latitude, longitude,productName);
+        return ResponseEntity.ok(nearestMedicals);
+    }
 
 }
