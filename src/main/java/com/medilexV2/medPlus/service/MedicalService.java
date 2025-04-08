@@ -14,6 +14,10 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.NearQuery;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -23,12 +27,13 @@ import java.util.regex.Pattern;
 public class MedicalService {
 
     private final MongoTemplate mongoTemplate;
-
+    private final PhotoUploadService photoUploadService;
     private final MedicalRepository medicalRepository;
     private final Logger logger = Logger.getLogger(MedicalService.class.getName());
 
-    public MedicalService(MongoTemplate mongoTemplate, MedicalRepository medicalRepository) {
+    public MedicalService(MongoTemplate mongoTemplate, PhotoUploadService photoUploadService, MedicalRepository medicalRepository) {
         this.mongoTemplate = mongoTemplate;
+        this.photoUploadService = photoUploadService;
         this.medicalRepository = medicalRepository;
     }
 
@@ -205,5 +210,28 @@ public class MedicalService {
             throw new ResourceNotFoundException("No medicals found");
         }
         return medicals;
+    }
+
+    public Medical uploadMedicalPhotos(List<MultipartFile> files) throws IOException {
+        Medical medical = medicalRepository.findById(getCurrentuser().getId()).orElseThrow(() -> new RuntimeException("Medical not found"));
+
+        List<String> photoUrls = new ArrayList<>();
+        for (MultipartFile file : files) {
+            String url = photoUploadService.uploadPhoto(file);
+            photoUrls.add(url);
+        }
+
+        medical.setPhotos(photoUrls);
+        return medicalRepository.save(medical);
+    }
+
+    public List<String> getAllPhotos() {
+        Medical medical = medicalRepository.findById(getCurrentuser().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Medical not found"));
+        List<String> photos = medical.getPhotos();
+        if (photos == null || photos.isEmpty()) {
+            throw new ResourceNotFoundException("No photos found for this medical");
+        }
+        return photos;
     }
 }

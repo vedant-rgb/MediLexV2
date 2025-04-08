@@ -119,4 +119,14 @@ public class MedicalController {
         return ResponseEntity.ok(nearestMedicals);
     }
 
+    @PostMapping("/upload-photos")
+    public Medical uploadPhotos(@RequestParam("files") List<MultipartFile> files) throws IOException {
+        return medicalService.uploadMedicalPhotos(files);
+    }
+
+    @GetMapping("/get-all-photos")
+    public List<String> getAllPhotos() {
+        return medicalService.getAllPhotos();
+    }
+
 }
