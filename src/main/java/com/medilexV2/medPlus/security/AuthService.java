@@ -1,10 +1,7 @@
 package com.medilexV2.medPlus.security;
 
 
-import com.medilexV2.medPlus.dto.LoginDTO;
-import com.medilexV2.medPlus.dto.LoginResponseDTO;
-import com.medilexV2.medPlus.dto.ResetPasswordDTO;
-import com.medilexV2.medPlus.dto.SignUpRequest;
+import com.medilexV2.medPlus.dto.*;
 import com.medilexV2.medPlus.entity.Medical;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
 import com.medilexV2.medPlus.repository.MedicalRepository;
@@ -44,28 +41,46 @@ public class AuthService {
         this.medicalRepository = medicalRepository;
     }
 
-    public String signUp(SignUpRequest signUpRequest){
+    public String signUp(SignUpRequest signUpRequest) {
         try {
-            logger.info("started sigup with email " + signUpRequest.getEmail());
+            logger.info("Started signup with email " + signUpRequest.getEmail());
 
+            // Check if medical store already exists
             Optional<Medical> medical = medicalRepository.findByEmail(signUpRequest.getEmail());
             if (medical.isPresent()) {
-                throw new RuntimeException("Meeical is already register with the email : " + signUpRequest.getEmail());
+                throw new RuntimeException("Medical is already registered with the email: " + signUpRequest.getEmail());
             }
-            Medical toBeSaved = modelMapper.map(signUpRequest, Medical.class);
-            logger.info(toBeSaved);
-            toBeSaved.setLocation(new GeoJsonPoint(0.0, 0.0));
-            toBeSaved.setPhotos(new ArrayList<>());
-            toBeSaved.setProducts(new ArrayList<>());
-            toBeSaved.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
-            toBeSaved.setFirstTimeLogin(true);
-            Medical saved = medicalRepository.save(toBeSaved);
-            logger.info(saved);
-            return "Successfully registered with Registration ID : " + saved.getEmail();
+
+            // Create GeoJsonPoint from coordinates
+            GeoJsonPoint geoPoint = new GeoJsonPoint(signUpRequest.getLongitude(), signUpRequest.getLatitude());
+
+            // Create new Medical object and set fields manually
+            Medical newMedical = new Medical();
+            newMedical.setEmail(signUpRequest.getEmail());
+            newMedical.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
+            newMedical.setMedicalName(signUpRequest.getMedicalName());
+            newMedical.setMedicalAddress(signUpRequest.getMedicalAddress());
+            newMedical.setLicenseNumber(signUpRequest.getLicenseNumber());
+            newMedical.setContactNumber(signUpRequest.getContactNumber());
+            newMedical.setPhotos(new ArrayList<>());
+            newMedical.setProducts(new ArrayList<>());
+            newMedical.setFirstTimeLogin(true);
+
+            // Save to DB
+            Medical saved = medicalRepository.save(newMedical);
+            logger.info("Saved: " + saved);
+
+            return "Successfully registered with Registration ID: " + saved.getEmail();
+
         } catch (RuntimeException e) {
-            throw new RuntimeException(e);
+            logger.error("Error during signup", e);
+            throw new RuntimeException("Signup failed: " + e.getMessage());
         }
     }
+
+
+
+
 
     public LoginResponseDTO login(LoginDTO loginDTO) {
         logger.info("Logging the medical "+loginDTO.getEmail());

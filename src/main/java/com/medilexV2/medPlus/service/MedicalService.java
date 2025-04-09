@@ -156,14 +156,14 @@ public class MedicalService {
         medicalRepository.save(medical);
     }
 
-    public Medical updateLocation(LocationUpdateDto locationUpdateDto) {
-        Medical currentMedical=getCurrentuser();
-        Medical medical = medicalRepository.findById(currentMedical.getId())
-                .orElseThrow(() -> new RuntimeException("Medical store not found"));
-        GeoJsonPoint newLocation = new GeoJsonPoint(locationUpdateDto.getLongitude(), locationUpdateDto.getLatitude());
-        medical.setLocation(newLocation);
-        return medicalRepository.save(medical);
-    }
+//    public Medical updateLocation(LocationUpdateDto locationUpdateDto) {
+//        Medical currentMedical=getCurrentuser();
+//        Medical medical = medicalRepository.findById(currentMedical.getId())
+//                .orElseThrow(() -> new RuntimeException("Medical store not found"));
+//        GeoJsonPoint newLocation = new GeoJsonPoint(locationUpdateDto.getLongitude(), locationUpdateDto.getLatitude());
+//        medical.setLocation(newLocation);
+//        return medicalRepository.save(medical);
+//    }
 
     public Medical getMedicalById(String id) {
         return medicalRepository.findById(id)

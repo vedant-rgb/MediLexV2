@@ -102,11 +102,11 @@ public class MedicalController {
         return ResponseEntity.ok(medicals);
     }
 
-    @PostMapping("/update-location")
-    public ResponseEntity<Medical> updateLocation(@RequestBody LocationUpdateDto locationUpdateDto) {
-        Medical updatedMedical = medicalService.updateLocation(locationUpdateDto);
-        return ResponseEntity.ok(updatedMedical);
-    }
+//    @PostMapping("/update-location")
+//    public ResponseEntity<Medical> updateLocation(@RequestBody LocationUpdateDto locationUpdateDto) {
+//        Medical updatedMedical = medicalService.updateLocation(locationUpdateDto);
+//        return ResponseEntity.ok(updatedMedical);
+//    }
     @GetMapping("/{id}")
     public ResponseEntity<Medical> getMedicalById(@PathVariable String id) {
         Medical medical = medicalService.getMedicalById(id);
