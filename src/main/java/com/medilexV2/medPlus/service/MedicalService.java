@@ -156,23 +156,9 @@ public class MedicalService {
         medicalRepository.save(medical);
     }
 
-//    public Medical updateLocation(LocationUpdateDto locationUpdateDto) {
-//        Medical currentMedical=getCurrentuser();
-//        Medical medical = medicalRepository.findById(currentMedical.getId())
-//                .orElseThrow(() -> new RuntimeException("Medical store not found"));
-//        GeoJsonPoint newLocation = new GeoJsonPoint(locationUpdateDto.getLongitude(), locationUpdateDto.getLatitude());
-//        medical.setLocation(newLocation);
-//        return medicalRepository.save(medical);
-//    }
-
     public Medical getMedicalById(String id) {
         return medicalRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Medical store not found"));
-    }
-
-
-    private Medical getCurrentuser(){
-        return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     public List<Medical> getAllMedicals() {
@@ -233,5 +219,9 @@ public class MedicalService {
             throw new ResourceNotFoundException("No photos found for this medical");
         }
         return photos;
+    }
+
+    private Medical getCurrentuser(){
+        return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }

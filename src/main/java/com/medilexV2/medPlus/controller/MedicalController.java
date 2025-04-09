@@ -6,11 +6,13 @@ import com.medilexV2.medPlus.dto.MedicalDistanceDto;
 import com.medilexV2.medPlus.dto.Products;
 import com.medilexV2.medPlus.entity.Medical;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
+import com.medilexV2.medPlus.repository.MedicalRepository;
 import com.medilexV2.medPlus.service.ExcelSheetDownloadService;
 import com.medilexV2.medPlus.service.MedicalService;
 import com.medilexV2.medPlus.thirdPartyService.OcrService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.Logger;
+import org.bson.Document;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,12 +27,14 @@ public class MedicalController {
     private final OcrService ocrService;
     private final MedicalService medicalService;
     private final ExcelSheetDownloadService excelSheetDownloadService;
+    private final MedicalRepository medicalRepository;
     Logger logger = org.apache.logging.log4j.LogManager.getLogger(MedicalController.class);
 
-    public MedicalController(OcrService ocrService, MedicalService medicalService, ExcelSheetDownloadService excelSheetDownloadService) {
+    public MedicalController(OcrService ocrService, MedicalService medicalService, ExcelSheetDownloadService excelSheetDownloadService, MedicalRepository medicalRepository) {
         this.ocrService = ocrService;
         this.medicalService = medicalService;
         this.excelSheetDownloadService = excelSheetDownloadService;
+        this.medicalRepository = medicalRepository;
     }
 
     @PostMapping("/upload")
@@ -102,6 +106,17 @@ public class MedicalController {
         return ResponseEntity.ok(medicals);
     }
 
+    @GetMapping("/nearby")
+    public ResponseEntity<List<Document>> findNearbyMedicalsWithMedicine(
+            @RequestParam String medicineName,
+            @RequestParam double lat,
+            @RequestParam double lng,
+            @RequestParam(defaultValue = "2000") double radiusInMeters) {
+
+        List<Document> results = medicalRepository.findNearbyMedicalsWithMedicine(medicineName, lat, lng, radiusInMeters);
+        return ResponseEntity.ok(results);
+    }
+
 //    @PostMapping("/update-location")
 //    public ResponseEntity<Medical> updateLocation(@RequestBody LocationUpdateDto locationUpdateDto) {
 //        Medical updatedMedical = medicalService.updateLocation(locationUpdateDto);
@@ -128,5 +143,7 @@ public class MedicalController {
     public List<String> getAllPhotos() {
         return medicalService.getAllPhotos();
     }
+
+
 
 }

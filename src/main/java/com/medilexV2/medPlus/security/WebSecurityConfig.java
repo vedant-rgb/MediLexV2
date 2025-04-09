@@ -51,7 +51,8 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/auth/**",
-                                "/medical/**"
+                                "/medical/**",
+                                "/medical-location/**"
                         ).permitAll()
                         .anyRequest().authenticated()
 
