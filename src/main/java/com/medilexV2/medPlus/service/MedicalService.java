@@ -2,8 +2,11 @@ package com.medilexV2.medPlus.service;
 
 import com.medilexV2.medPlus.dto.*;
 import com.medilexV2.medPlus.entity.Medical;
+import com.medilexV2.medPlus.entity.MedicalLocation;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
+import com.medilexV2.medPlus.repository.MedicalLocationRepository;
 import com.medilexV2.medPlus.repository.MedicalRepository;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Point;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -29,12 +32,14 @@ public class MedicalService {
     private final MongoTemplate mongoTemplate;
     private final PhotoUploadService photoUploadService;
     private final MedicalRepository medicalRepository;
+    private final MedicalLocationRepository medicalLocationRepository;
     private final Logger logger = Logger.getLogger(MedicalService.class.getName());
 
-    public MedicalService(MongoTemplate mongoTemplate, PhotoUploadService photoUploadService, MedicalRepository medicalRepository) {
+    public MedicalService(MongoTemplate mongoTemplate, PhotoUploadService photoUploadService, MedicalRepository medicalRepository, MedicalLocationRepository medicalLocationRepository) {
         this.mongoTemplate = mongoTemplate;
         this.photoUploadService = photoUploadService;
         this.medicalRepository = medicalRepository;
+        this.medicalLocationRepository = medicalLocationRepository;
     }
 
     public List<Products> getProducts() {
@@ -170,25 +175,7 @@ public class MedicalService {
 
     }
 
-    public List<Medical> getNearestMedical(double latitude, double longitude, String productName) {
-        Point userLocation = new Point(longitude, latitude);
-        NearQuery nearQuery = NearQuery.near(userLocation)
-                .spherical(true)
-                .distanceMultiplier(6371.0)
-                .maxDistance(10.0)
-                .limit(2);
-        Criteria productCriteria = Criteria.where("products")
-                .elemMatch(Criteria.where("Product Name")
-                        .regex("^" + Pattern.quote(productName) + "$", "i"));
 
-        Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.geoNear(nearQuery, "distance"), // distance field
-                Aggregation.match(productCriteria), // filter documents that contain product
-                Aggregation.limit(3) // return top 3
-        );
-        AggregationResults<Medical> results = mongoTemplate.aggregate(aggregation, "MedicalStore", Medical.class);
-        return results.getMappedResults();
-    }
 
     public List<Medical> getAllMedical() {
         List<Medical> medicals = medicalRepository.findAll();
@@ -220,6 +207,9 @@ public class MedicalService {
         }
         return photos;
     }
+
+
+
 
     private Medical getCurrentuser(){
         return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

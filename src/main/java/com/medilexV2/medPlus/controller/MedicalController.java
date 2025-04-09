@@ -1,11 +1,10 @@
 package com.medilexV2.medPlus.controller;
 
 import com.medilexV2.medPlus.dto.BillingDTO;
-import com.medilexV2.medPlus.dto.LocationUpdateDto;
-import com.medilexV2.medPlus.dto.MedicalDistanceDto;
 import com.medilexV2.medPlus.dto.Products;
 import com.medilexV2.medPlus.entity.Medical;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
+import com.medilexV2.medPlus.repository.MedicalLocationRepository;
 import com.medilexV2.medPlus.repository.MedicalRepository;
 import com.medilexV2.medPlus.service.ExcelSheetDownloadService;
 import com.medilexV2.medPlus.service.MedicalService;
@@ -29,12 +28,15 @@ public class MedicalController {
     private final ExcelSheetDownloadService excelSheetDownloadService;
     private final MedicalRepository medicalRepository;
     Logger logger = org.apache.logging.log4j.LogManager.getLogger(MedicalController.class);
+    private final MedicalLocationRepository medicalLocationRepository;
 
-    public MedicalController(OcrService ocrService, MedicalService medicalService, ExcelSheetDownloadService excelSheetDownloadService, MedicalRepository medicalRepository) {
+    public MedicalController(OcrService ocrService, MedicalService medicalService, ExcelSheetDownloadService excelSheetDownloadService, MedicalRepository medicalRepository,
+                             MedicalLocationRepository medicalLocationRepository) {
         this.ocrService = ocrService;
         this.medicalService = medicalService;
         this.excelSheetDownloadService = excelSheetDownloadService;
         this.medicalRepository = medicalRepository;
+        this.medicalLocationRepository = medicalLocationRepository;
     }
 
     @PostMapping("/upload")
@@ -106,33 +108,14 @@ public class MedicalController {
         return ResponseEntity.ok(medicals);
     }
 
-    @GetMapping("/nearby")
-    public ResponseEntity<List<Document>> findNearbyMedicalsWithMedicine(
-            @RequestParam String medicineName,
-            @RequestParam double lat,
-            @RequestParam double lng,
-            @RequestParam(defaultValue = "2000") double radiusInMeters) {
 
-        List<Document> results = medicalRepository.findNearbyMedicalsWithMedicine(medicineName, lat, lng, radiusInMeters);
-        return ResponseEntity.ok(results);
-    }
 
-//    @PostMapping("/update-location")
-//    public ResponseEntity<Medical> updateLocation(@RequestBody LocationUpdateDto locationUpdateDto) {
-//        Medical updatedMedical = medicalService.updateLocation(locationUpdateDto);
-//        return ResponseEntity.ok(updatedMedical);
-//    }
     @GetMapping("/{id}")
     public ResponseEntity<Medical> getMedicalById(@PathVariable String id) {
         Medical medical = medicalService.getMedicalById(id);
         return ResponseEntity.ok(medical);
     }
 
-    @GetMapping("/nearest-medical")
-    public ResponseEntity<List<Medical>> getNearestMedical(@RequestParam double latitude, @RequestParam double longitude,@RequestParam String productName) {
-        List<Medical> nearestMedicals = medicalService.getNearestMedical(latitude, longitude,productName);
-        return ResponseEntity.ok(nearestMedicals);
-    }
 
     @PostMapping("/upload-photos")
     public Medical uploadPhotos(@RequestParam("files") List<MultipartFile> files) throws IOException {

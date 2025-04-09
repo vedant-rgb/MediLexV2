@@ -1,5 +1,7 @@
 package com.medilexV2.medPlus.service;
 
+import com.medilexV2.medPlus.dto.NearbyMedicalProductDTO;
+import com.medilexV2.medPlus.dto.Products;
 import com.medilexV2.medPlus.entity.Medical;
 import com.medilexV2.medPlus.entity.MedicalLocation;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
@@ -9,7 +11,10 @@ import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class MedicalLocationService {
@@ -39,6 +44,28 @@ public class MedicalLocationService {
 
     public List<MedicalLocation> findNearbyLocations(double longitude, double latitude, double maxDistance) {
         return medicalLocationRepository.findNearby(longitude, latitude, maxDistance);
+    }
+
+    public List<NearbyMedicalProductDTO> findNearbyMedicalsWithProduct(double latitude, double longitude, double maxDistance, String productName) {
+        List<MedicalLocation> nearbyLocations = findNearbyLocations(longitude, latitude, maxDistance);
+        System.out.println("Nearby Locations: " + nearbyLocations);
+
+        List<NearbyMedicalProductDTO> nearbyMedicalsWithProduct = new ArrayList<>();
+        for (MedicalLocation location : nearbyLocations) {
+            Medical medical = medicalRepository.findByEmail(location.getEmail()).orElseThrow(() -> new ResourceNotFoundException("Medical not found with email: " + location.getEmail()));
+            boolean match = medical.getProducts().stream()
+                    .anyMatch(products -> products.getProductName().equalsIgnoreCase(productName));
+            if(match){
+                NearbyMedicalProductDTO dto = new NearbyMedicalProductDTO();
+                Products first = medical.getProducts().stream().filter(products -> products.getProductName().equalsIgnoreCase(productName)).findFirst().get();
+                dto.setProductName(first.getProductName());
+                dto.setMrp(first.getMrp());
+                dto.setMedicalName(medical.getMedicalName());
+                nearbyMedicalsWithProduct.add(dto);
+            }
+        }
+        return nearbyMedicalsWithProduct;
+
     }
 
     private Medical getCurrentuser(){

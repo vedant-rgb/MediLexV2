@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.repository.Query;
 import java.util.List;
 import java.util.Optional;
 
-public interface MedicalLocationRepository extends MongoRepository<MedicalLocation, String> {
+public interface MedicalLocationRepository extends MongoRepository<MedicalLocation, String>{
 
      Optional<MedicalLocation> findByEmail(String email);
 
