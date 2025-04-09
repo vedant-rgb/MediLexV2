@@ -4,43 +4,43 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 public class Products {
-    @JsonProperty("HSN")
+    @JsonProperty("hsn")
     private String hsn;
 
-    @JsonProperty("Product Name")
+    @JsonProperty("productName")
     private String productName;
 
-    @JsonProperty("Mfg")
+    @JsonProperty("mfg")
     private String mfg;
 
-    @JsonProperty("Unit")
+    @JsonProperty("unit")
     private String unit;
 
-    @JsonProperty("Qty")
+    @JsonProperty("qty")
     private Integer qty;
 
-    @JsonProperty("Sch")
+    @JsonProperty("sch")
     private Integer sch;
 
-    @JsonProperty("Batch")
+    @JsonProperty("batch")
     private String batch;
 
-    @JsonProperty("Exp")
+    @JsonProperty("exp")
     private String exp;
 
-    @JsonProperty("MRP")
+    @JsonProperty("mrp")
     private Double mrp;
 
-    @JsonProperty("Rate")
+    @JsonProperty("rate")
     private Double rate;
 
-    @JsonProperty("PTR")
+    @JsonProperty("ptr")
     private Double ptr;
 
-    @JsonProperty("Gst")
+    @JsonProperty("gst")
     private Double gst;
 
-    @JsonProperty("Amount")
+    @JsonProperty("amount")
     private Double amount;
 
 
