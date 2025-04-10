@@ -1,8 +1,6 @@
 package com.medilexV2.medPlus.controller;
 
 import com.medilexV2.medPlus.dto.BillingDTO;
-import com.medilexV2.medPlus.dto.LocationUpdateDto;
-import com.medilexV2.medPlus.dto.MedicalDistanceDto;
 import com.medilexV2.medPlus.dto.Products;
 import com.medilexV2.medPlus.entity.Medical;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
