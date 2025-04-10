@@ -7,6 +7,7 @@ import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
 import com.medilexV2.medPlus.repository.MedicalLocationRepository;
 import com.medilexV2.medPlus.repository.MedicalRepository;
 import org.bson.Document;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Point;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -34,12 +35,14 @@ public class MedicalService {
     private final MedicalRepository medicalRepository;
     private final MedicalLocationRepository medicalLocationRepository;
     private final Logger logger = Logger.getLogger(MedicalService.class.getName());
+    private final ModelMapper modelMapper;
 
-    public MedicalService(MongoTemplate mongoTemplate, PhotoUploadService photoUploadService, MedicalRepository medicalRepository, MedicalLocationRepository medicalLocationRepository) {
+    public MedicalService(MongoTemplate mongoTemplate, PhotoUploadService photoUploadService, MedicalRepository medicalRepository, MedicalLocationRepository medicalLocationRepository, ModelMapper modelMapper) {
         this.mongoTemplate = mongoTemplate;
         this.photoUploadService = photoUploadService;
         this.medicalRepository = medicalRepository;
         this.medicalLocationRepository = medicalLocationRepository;
+        this.modelMapper = modelMapper;
     }
 
     public List<Products> getProducts() {
@@ -51,6 +54,21 @@ public class MedicalService {
         }
 
         return medical.get().getProducts();
+    }
+
+    public List<AllProducts> getAllProducts() {
+        List<Medical> medicals = medicalRepository.findAll();
+        List<AllProducts> allProducts = new ArrayList<>();
+        for (Medical medical : medicals) {
+            List<Products> products = medical.getProducts();
+            products.stream()
+                    .map(entry->modelMapper.map(entry, AllProducts.class))
+                    .forEach(allProducts::add);
+        }
+        if (allProducts.isEmpty()) {
+            throw new ResourceNotFoundException("No products found");
+        }
+        return allProducts;
     }
 
     public Products updateProductField(Products product) {
@@ -214,4 +232,6 @@ public class MedicalService {
     private Medical getCurrentuser(){
         return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
+
+
 }

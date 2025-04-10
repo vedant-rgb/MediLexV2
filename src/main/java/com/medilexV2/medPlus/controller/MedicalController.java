@@ -1,5 +1,6 @@
 package com.medilexV2.medPlus.controller;
 
+import com.medilexV2.medPlus.dto.AllProducts;
 import com.medilexV2.medPlus.dto.BillingDTO;
 import com.medilexV2.medPlus.dto.Products;
 import com.medilexV2.medPlus.entity.Medical;
@@ -64,6 +65,13 @@ public class MedicalController {
         List<Products> products = medicalService.getProducts();
         return ResponseEntity.ok(products);
     }
+
+    @GetMapping("/allProducts")
+    public ResponseEntity<List<AllProducts>> getAllProducts() {
+        List<AllProducts> products = medicalService.getAllProducts();
+        return ResponseEntity.ok(products);
+    }
+
 
     @PutMapping("/product/update")
     public ResponseEntity<Products> updateProduct(@RequestBody Products product) {

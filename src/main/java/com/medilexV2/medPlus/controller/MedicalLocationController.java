@@ -1,5 +1,6 @@
 package com.medilexV2.medPlus.controller;
 
+import com.medilexV2.medPlus.dto.NearbyMedicalDTO;
 import com.medilexV2.medPlus.dto.NearbyMedicalProductDTO;
 import com.medilexV2.medPlus.entity.MedicalLocation;
 import com.medilexV2.medPlus.service.MedicalLocationService;
@@ -32,8 +33,8 @@ public class MedicalLocationController {
     }
 
     @GetMapping("/nearby")
-    public List<MedicalLocation> findNearbyLocations(@RequestParam double longitude, @RequestParam double latitude, @RequestParam(defaultValue = "2000") double maxDistance) {
-        return medicalLocationService.findNearbyLocations(longitude, latitude, maxDistance);
+    public List<NearbyMedicalDTO> findNearbyLocations(@RequestParam double longitude, @RequestParam double latitude, @RequestParam(defaultValue = "2000") double maxDistance) {
+        return medicalLocationService.findNearbyLocationsWithCoordinates(longitude, latitude, maxDistance);
     }
 
     @GetMapping("/findAll")

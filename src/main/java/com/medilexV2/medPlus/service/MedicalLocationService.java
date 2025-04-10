@@ -1,5 +1,6 @@
 package com.medilexV2.medPlus.service;
 
+import com.medilexV2.medPlus.dto.NearbyMedicalDTO;
 import com.medilexV2.medPlus.dto.NearbyMedicalProductDTO;
 import com.medilexV2.medPlus.dto.Products;
 import com.medilexV2.medPlus.entity.Medical;
@@ -45,6 +46,31 @@ public class MedicalLocationService {
     public List<MedicalLocation> findNearbyLocations(double longitude, double latitude, double maxDistance) {
         return medicalLocationRepository.findNearby(longitude, latitude, maxDistance);
     }
+
+    public List<NearbyMedicalDTO> findNearbyLocationsWithCoordinates(double longitude, double latitude, double maxDistance) {
+        List<MedicalLocation> nearby = medicalLocationRepository.findNearby(longitude, latitude, maxDistance);
+
+        // Convert to DTOs
+        List<NearbyMedicalDTO> nearbyDTOs = new ArrayList<>();
+
+        for (MedicalLocation location : nearby) {
+            NearbyMedicalDTO dto = new NearbyMedicalDTO();
+            Medical byEmail = medicalRepository.findByEmail(location.getEmail()).get();
+            dto.setMedicalName(byEmail.getMedicalName());
+            dto.setMedicalAddress(byEmail.getMedicalAddress());
+            dto.setContactNumber(byEmail.getContactNumber());
+
+            if (location.getLocation() != null) {
+                dto.setLatitude(location.getLocation().getY()); // Y = Latitude
+                dto.setLongitude(location.getLocation().getX()); // X = Longitude
+            }
+
+            nearbyDTOs.add(dto);
+        }
+
+        return nearbyDTOs;
+    }
+
 
     public List<NearbyMedicalProductDTO> findNearbyMedicalsWithProduct(double latitude, double longitude, double maxDistance, String productName) {
         List<MedicalLocation> nearbyLocations = findNearbyLocations(longitude, latitude, maxDistance);
