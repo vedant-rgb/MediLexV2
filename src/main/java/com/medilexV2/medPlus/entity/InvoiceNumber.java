@@ -10,14 +10,16 @@ public class InvoiceNumber {
 
     private String invoiceNumber;
 
+    private String email;
+
     public InvoiceNumber() {
     }
 
-    public InvoiceNumber(String id, String invoiceNumber) {
+    public InvoiceNumber(String id, String invoiceNumber,String email) {
         this.id = id;
         this.invoiceNumber = invoiceNumber;
+        this.email=email;
     }
-
     public String getId() {
         return id;
     }
@@ -32,5 +34,13 @@ public class InvoiceNumber {
 
     public void setInvoiceNumber(String invoiceNumber) {
         this.invoiceNumber = invoiceNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

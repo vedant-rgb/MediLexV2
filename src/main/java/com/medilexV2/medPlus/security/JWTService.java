@@ -33,7 +33,7 @@ public class JWTService {
         return Jwts.builder()
                 .subject(medical.getUsername())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() +1000*60*10))
+                .expiration(new Date(System.currentTimeMillis() +1000*60*60))
                 .signWith(getSecretKey())
                 .compact();
     }

@@ -193,8 +193,6 @@ public class MedicalService {
 
     }
 
-
-
     public List<Medical> getAllMedical() {
         List<Medical> medicals = medicalRepository.findAll();
         if (medicals.isEmpty()) {
@@ -225,9 +223,6 @@ public class MedicalService {
         }
         return photos;
     }
-
-
-
 
     private Medical getCurrentuser(){
         return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

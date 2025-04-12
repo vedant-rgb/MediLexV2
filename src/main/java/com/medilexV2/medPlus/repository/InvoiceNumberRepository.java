@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface InvoiceNumberRepository extends MongoRepository<InvoiceNumber,String>{
     Optional<InvoiceNumber> findByInvoiceNumber(String invoiceNumber);
+
+    Optional<InvoiceNumber> findByInvoiceNumberAndEmail(String invoiceNumber, String email);
 }

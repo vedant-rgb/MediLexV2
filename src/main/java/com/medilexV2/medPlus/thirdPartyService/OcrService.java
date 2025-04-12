@@ -78,25 +78,26 @@ public class OcrService {
             logger.info("Extracted invoice number: " + invoiceNumber); // Should now show "CR/98"
             logger.info("Extracted products: " + products);
 
-            Optional<InvoiceNumber> byInvoiceNumber = invoiceNumberRepository.findByInvoiceNumber(invoiceNumber);
+            Medical currentUser = getCurrentUser();
+            logger.info("Current user: " + currentUser);
+
+            Optional<InvoiceNumber> byInvoiceNumber = invoiceNumberRepository.findByInvoiceNumberAndEmail(invoiceNumber, currentUser.getEmail());
             if(byInvoiceNumber.isPresent()){
                 logger.info("Invoice number already exists in database: " + invoiceNumber);
                 throw new RuntimeException("This Bill is already uploaded in database");
             }
             InvoiceNumber invoiceNumberEntity = new InvoiceNumber();
             invoiceNumberEntity.setInvoiceNumber(invoiceNumber);
+            invoiceNumberEntity.setEmail(currentUser.getEmail());
             invoiceNumberRepository.save(invoiceNumberEntity);
 
 
-
-            Medical currentUser = getCurrentUser();
-            logger.info("Current user: " + currentUser);
 
             Medical medical = medicalRepository.findByEmail(currentUser.getUsername())
                     .orElseThrow(() -> new ResourceNotFoundException("No medical found"));
             logger.info("Medical email: " + medical.getUsername());
 
-            medical.setProducts(products);
+            medical.getProducts().addAll(products);
             // Optionally store invoiceNumber in Medical entity if it has such a field
             // medical.setInvoiceNumber(invoiceNumber);
 
