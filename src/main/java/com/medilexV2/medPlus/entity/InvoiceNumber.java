@@ -12,6 +12,7 @@ public class InvoiceNumber {
 
     private String email;
 
+
     public InvoiceNumber() {
     }
 

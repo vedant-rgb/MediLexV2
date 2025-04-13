@@ -19,7 +19,7 @@ public class MedicalLocationController {
 
     private final MedicalLocationService medicalLocationService;
     private final MedicalService medicalService;
-    private static final Logger logger = LoggerFactory.getLogger(MedicalController.class);
+    private static final Logger logger = LoggerFactory.getLogger(MedicalStoreController.class);
 
 
     public MedicalLocationController(MedicalLocationService medicalLocationService, MedicalService medicalService) {

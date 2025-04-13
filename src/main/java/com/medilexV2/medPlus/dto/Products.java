@@ -19,6 +19,9 @@ public class Products {
     @JsonProperty("qty")
     private Integer qty;
 
+    @JsonProperty("currentStock")
+    private Integer currentStock;
+
     @JsonProperty("sch")
     private Integer sch;
 
@@ -148,6 +151,15 @@ public class Products {
     public void setAmount(Double amount) {
         this.amount = amount;
     }
+
+    public Integer getCurrentStock() {
+        return currentStock;
+    }
+
+    public void setCurrentStock(Integer currentStock) {
+        this.currentStock = currentStock;
+    }
+
 
 
 

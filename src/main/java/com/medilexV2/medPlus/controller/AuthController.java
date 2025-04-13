@@ -36,10 +36,7 @@ public class AuthController {
         return ResponseEntity.ok(loginResponse);
     }
 
-    @PostMapping("/signUp")
-    public ResponseEntity<String> createNewTeacher(@RequestBody SignUpRequest signUpRequest){
-        return new ResponseEntity<>(authService.signUp(signUpRequest), HttpStatus.CREATED);
-    }
+
 
     @GetMapping("/checkIsFirstTimeLogin")
     public ResponseEntity<Boolean> checkIsFirstTimeLogin(){

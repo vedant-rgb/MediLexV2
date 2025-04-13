@@ -12,7 +12,6 @@ import com.medilexV2.medPlus.service.MedicalService;
 import com.medilexV2.medPlus.thirdPartyService.OcrService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.Logger;
-import org.bson.Document;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,16 +22,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/medical")
-public class MedicalController {
+public class MedicalStoreController {
     private final OcrService ocrService;
     private final MedicalService medicalService;
     private final ExcelSheetDownloadService excelSheetDownloadService;
     private final MedicalRepository medicalRepository;
-    Logger logger = org.apache.logging.log4j.LogManager.getLogger(MedicalController.class);
+    Logger logger = org.apache.logging.log4j.LogManager.getLogger(MedicalStoreController.class);
     private final MedicalLocationRepository medicalLocationRepository;
 
-    public MedicalController(OcrService ocrService, MedicalService medicalService, ExcelSheetDownloadService excelSheetDownloadService, MedicalRepository medicalRepository,
-                             MedicalLocationRepository medicalLocationRepository) {
+    public MedicalStoreController(OcrService ocrService, MedicalService medicalService, ExcelSheetDownloadService excelSheetDownloadService, MedicalRepository medicalRepository,
+                                  MedicalLocationRepository medicalLocationRepository) {
         this.ocrService = ocrService;
         this.medicalService = medicalService;
         this.excelSheetDownloadService = excelSheetDownloadService;
@@ -60,6 +59,12 @@ public class MedicalController {
         }
     }
 
+    @PostMapping("/addProduct")
+    public ResponseEntity<Products> addProduct(@RequestBody Products product) {
+        Products savedProduct = medicalService.addProduct(product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
+    }
+
     @GetMapping("/products")
     public ResponseEntity<List<Products>> getAllProductsForMedical() {
         List<Products> products = medicalService.getProducts();
@@ -81,12 +86,12 @@ public class MedicalController {
 
     @DeleteMapping("/product/delete")
     public ResponseEntity<String> deleteProduct(
-            @RequestParam String HSN,
+            @RequestParam String hsn,
             @RequestParam String productName,
             @RequestParam String batch,
             @RequestParam String exp) {
 
-        medicalService.deleteProduct(HSN, productName, batch, exp);
+        medicalService.deleteProduct(hsn, productName, batch, exp);
         return ResponseEntity.ok("Product deleted successfully.");
     }
 
@@ -109,13 +114,6 @@ public class MedicalController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while processing billing.");
         }
     }
-
-    @GetMapping("/getAllMedical")
-    public ResponseEntity<?> getAllMedical() {
-        List<Medical> medicals = medicalService.getAllMedical();
-        return ResponseEntity.ok(medicals);
-    }
-
 
 
     @GetMapping("/{id}")

@@ -74,6 +74,10 @@ public class OcrService {
 
             // Extract products and invoice number
             List<Products> products = ocrResponse.getProducts();
+            for (Products product : products) {
+                product.setCurrentStock(product.getQty()); // set default current stock
+            }
+
             String invoiceNumber = ocrResponse.getInvoiceNumber();
             logger.info("Extracted invoice number: " + invoiceNumber); // Should now show "CR/98"
             logger.info("Extracted products: " + products);
@@ -98,8 +102,7 @@ public class OcrService {
             logger.info("Medical email: " + medical.getUsername());
 
             medical.getProducts().addAll(products);
-            // Optionally store invoiceNumber in Medical entity if it has such a field
-            // medical.setInvoiceNumber(invoiceNumber);
+
 
             Medical saved = medicalRepository.save(medical);
             logger.info("Saved Medical email: " + saved.getUsername());

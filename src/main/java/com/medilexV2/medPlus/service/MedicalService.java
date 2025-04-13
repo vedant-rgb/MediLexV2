@@ -2,20 +2,11 @@ package com.medilexV2.medPlus.service;
 
 import com.medilexV2.medPlus.dto.*;
 import com.medilexV2.medPlus.entity.Medical;
-import com.medilexV2.medPlus.entity.MedicalLocation;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
 import com.medilexV2.medPlus.repository.MedicalLocationRepository;
 import com.medilexV2.medPlus.repository.MedicalRepository;
-import org.bson.Document;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.geo.Point;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.NearQuery;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 @Service
 public class MedicalService {
@@ -54,6 +44,17 @@ public class MedicalService {
         }
 
         return medical.get().getProducts();
+    }
+
+    public Integer getProductsCount() {
+        Medical currentuser = getCurrentuser();
+        Optional<Medical> medical = medicalRepository.findByEmail(currentuser.getEmail());
+
+        if (medical.isEmpty()) {
+            throw new ResourceNotFoundException("No medical found for email " + currentuser.getUsername());
+        }
+
+        return medical.get().getProducts().size();
     }
 
     public List<AllProducts> getAllProducts() {
@@ -158,14 +159,14 @@ public class MedicalService {
 
             for (Products product : products) {
                 if (product.getProductName().equalsIgnoreCase(billingInfo.getProductName())) {
-                    int currentQty = product.getQty() != null ? product.getQty() : 0;
+                    int currentQty = product.getCurrentStock() != null ? product.getCurrentStock() : 0;
                     int newQty = currentQty - billingInfo.getQty();
 
                     if (newQty < 0) {
                         throw new IllegalArgumentException("Insufficient stock for product: " + billingInfo.getProductName());
                     }
 
-                    product.setQty(newQty);
+                    product.setCurrentStock(newQty);
                     updated = true;
                     break;
                 }
@@ -184,14 +185,7 @@ public class MedicalService {
                 .orElseThrow(() -> new RuntimeException("Medical store not found"));
     }
 
-    public List<Medical> getAllMedicals() {
-        List<Medical> medicals = medicalRepository.findAll();
-        if (medicals.isEmpty()) {
-            throw new ResourceNotFoundException("No medicals found");
-        }
-        return medicals;
 
-    }
 
     public List<Medical> getAllMedical() {
         List<Medical> medicals = medicalRepository.findAll();
@@ -224,9 +218,53 @@ public class MedicalService {
         return photos;
     }
 
+    public List<LowStockDTO> getLowStockItems(){
+        Medical currentuser = getCurrentuser();
+        Optional<Medical> medical = medicalRepository.findByEmail(currentuser.getEmail());
+        if (medical.isEmpty()) {
+            throw new ResourceNotFoundException("No medical found for email " + currentuser.getUsername());
+        }
+        List<Products> products = medical.get().getProducts();
+        return products.stream()
+                .filter(product->givePercentageValue(product.getCurrentStock(),product.getQty()) <20.00 )
+                .map(products1 -> {
+                    LowStockDTO lowStockDTO = new LowStockDTO();
+                    lowStockDTO.setProductName(products1.getProductName());
+                    lowStockDTO.setCurrentStockQty(products1.getCurrentStock());
+                    lowStockDTO.setOriginalStocksQty(products1.getQty());
+                    return lowStockDTO;
+                })
+                .toList();
+    }
+
+    private Double givePercentageValue(int currentStock, int totalStock){
+        if(currentStock == 0){
+            return 0.0;
+        }
+        return ((double) currentStock / totalStock) * 100;
+    }
+
     private Medical getCurrentuser(){
         return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
 
+    public Products addProduct(Products product) {
+        Medical currentuser = getCurrentuser();
+        Optional<Medical> medical = medicalRepository.findByEmail(currentuser.getEmail());
+
+        if (medical.isEmpty()) {
+            throw new ResourceNotFoundException("No medical found for email " + currentuser.getUsername());
+        }
+
+        Medical toBeUpdate = medical.get();
+        List<Products> products = toBeUpdate.getProducts();
+
+        products.add(product);
+        toBeUpdate.setProducts(products);
+
+        medicalRepository.save(toBeUpdate);
+
+        return product;
+    }
 }

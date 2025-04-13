@@ -1,12 +1,14 @@
 package com.medilexV2.medPlus.entity;
 
 import com.medilexV2.medPlus.dto.Products;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -24,11 +26,17 @@ public class Medical implements UserDetails {
     private Boolean firstTimeLogin;
     private List<String> photos;
     private List<Products> products;
+    private Boolean active;
+    @CreatedDate
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 
     public Medical() {
     }
 
-    public Medical(String id, String email, String password, String medicalName, String medicalAddress, String licenseNumber, String contactNumber, Boolean firstTimeLogin, GeoJsonPoint location, List<String> photos, List<Products> products) {
+    public Medical(String id, String email, String password, String medicalName, String medicalAddress, String licenseNumber, String contactNumber, Boolean firstTimeLogin, List<String> photos, List<Products> products, Boolean active, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -36,9 +44,12 @@ public class Medical implements UserDetails {
         this.medicalAddress = medicalAddress;
         this.licenseNumber = licenseNumber;
         this.contactNumber = contactNumber;
-        this.firstTimeLogin = true;
+        this.firstTimeLogin = firstTimeLogin;
         this.photos = photos;
         this.products = products;
+        this.active = true;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public Boolean getFirstTimeLogin() {
@@ -115,6 +126,30 @@ public class Medical implements UserDetails {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 
     @Override
