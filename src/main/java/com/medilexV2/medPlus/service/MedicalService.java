@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -145,6 +146,22 @@ public class MedicalService {
         medicalRepository.save(medical);
     }
 
+    public List<RecentOrders> getRecentOrders(){
+        Medical currentUser = getCurrentuser();
+        Optional<Medical> medicalOpt = medicalRepository.findByEmail(currentUser.getEmail());
+
+        if (medicalOpt.isEmpty()) {
+            throw new ResourceNotFoundException("No medical found for email " + currentUser.getUsername());
+        }
+
+        Medical medical = medicalOpt.get();
+        List<RecentOrders> recentOrders = medical.getRecentOrders();
+        recentOrders.sort((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()));
+        return recentOrders;
+
+    }
+
+
     public void processBilling(BillingDTO billingDTO) {
         Medical currentUser = getCurrentuser();
         Optional<Medical> medicalOpt = medicalRepository.findByEmail(currentUser.getEmail());
@@ -155,6 +172,10 @@ public class MedicalService {
 
         Medical medical = medicalOpt.get();
         List<Products> products = medical.getProducts();
+        List<RecentOrders> recentOrders = medical.getRecentOrders();
+        RecentOrders orders = new RecentOrders(billingDTO.getCustomerName(), billingDTO.getTotalAmount());
+        orders.setCreatedAt(LocalDateTime.now());
+        recentOrders.add(orders);
 
         for (BillingInfo billingInfo : billingDTO.getBillingInfoList()) {
             boolean updated = false;

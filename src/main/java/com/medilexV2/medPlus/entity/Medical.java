@@ -1,6 +1,7 @@
 package com.medilexV2.medPlus.entity;
 
 import com.medilexV2.medPlus.dto.Products;
+import com.medilexV2.medPlus.dto.RecentOrders;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -28,6 +29,7 @@ public class Medical implements UserDetails {
     private List<String> photos;
     private List<Products> products;
     private Boolean active;
+    private List<RecentOrders> recentOrders;
     private String role;
     @CreatedDate
     private LocalDateTime createdAt;
@@ -38,7 +40,7 @@ public class Medical implements UserDetails {
     public Medical() {
     }
 
-    public Medical(String id, String email, String password, String medicalName, String medicalAddress, String licenseNumber, String contactNumber, Boolean firstTimeLogin, List<String> photos, List<Products> products, Boolean active, String role, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Medical(String id, String email, String password, String medicalName, String medicalAddress, String licenseNumber, String contactNumber, Boolean firstTimeLogin, List<String> photos, List<Products> products, Boolean active, List<RecentOrders> recentOrders, String role, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -50,6 +52,7 @@ public class Medical implements UserDetails {
         this.photos = photos;
         this.products = products;
         this.active = active;
+        this.recentOrders = recentOrders;
         this.role = role;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -161,6 +164,14 @@ public class Medical implements UserDetails {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public List<RecentOrders> getRecentOrders() {
+        return recentOrders;
+    }
+
+    public void setRecentOrders(List<RecentOrders> recentOrders) {
+        this.recentOrders = recentOrders;
     }
 
     @Override

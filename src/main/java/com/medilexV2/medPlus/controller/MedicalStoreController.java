@@ -1,9 +1,6 @@
 package com.medilexV2.medPlus.controller;
 
-import com.medilexV2.medPlus.dto.AllProducts;
-import com.medilexV2.medPlus.dto.BillingDTO;
-import com.medilexV2.medPlus.dto.LowStockDTO;
-import com.medilexV2.medPlus.dto.Products;
+import com.medilexV2.medPlus.dto.*;
 import com.medilexV2.medPlus.entity.Medical;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
 import com.medilexV2.medPlus.repository.MedicalLocationRepository;
@@ -88,6 +85,17 @@ public class MedicalStoreController {
     public ResponseEntity<List<LowStockDTO>> getLowStockProducts() {
         List<LowStockDTO> lowStockProducts = medicalService.getLowStockItems();
         return ResponseEntity.ok(lowStockProducts);
+    }
+
+    @GetMapping("/getExpiringProducts")
+    public ResponseEntity<List<ExpiringProductDTO>> getExpiringProducts() {
+        List<ExpiringProductDTO> expiringProducts = medicalService.getExpiredAndExpiringProductsNext10Days();
+        return ResponseEntity.ok(expiringProducts);
+    }
+
+    @GetMapping("/getRecentOrders")
+    public ResponseEntity<List<RecentOrders>> getAllRecentOrders() {
+        return ResponseEntity.ok(medicalService.getRecentOrders());
     }
 
 
