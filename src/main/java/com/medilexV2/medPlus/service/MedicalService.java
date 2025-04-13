@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -236,6 +238,39 @@ public class MedicalService {
                 })
                 .toList();
     }
+
+    public List<ExpiringProductDTO> getExpiredAndExpiringProductsNext10Days() {
+        Medical currentuser = getCurrentuser();
+        Optional<Medical> optionalMedical = medicalRepository.findByEmail(currentuser.getEmail());
+
+        if (optionalMedical.isEmpty()) {
+            throw new ResourceNotFoundException("No medical found for email " + currentuser.getUsername());
+        }
+
+        Medical medical = optionalMedical.get();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd");
+        LocalDate today = LocalDate.now();
+        LocalDate tenDaysLater = today.plusDays(10);
+
+        List<ExpiringProductDTO> result = new ArrayList<>();
+
+        for (Products product : medical.getProducts()) {
+            try {
+                LocalDate expDate = LocalDate.parse(product.getExp(), formatter).withYear(today.getYear());
+
+                // Adjust expired logic if needed (e.g., Dec → Jan)
+                if (!expDate.isAfter(tenDaysLater)) {
+                    result.add(new ExpiringProductDTO(medical.getMedicalName(), product));
+                }
+            } catch (Exception e) {
+                logger.warning("Invalid date format for: " + product.getProductName() + " - " + product.getExp());
+            }
+        }
+
+        return result;
+    }
+
+
 
     private Double givePercentageValue(int currentStock, int totalStock){
         if(currentStock == 0){

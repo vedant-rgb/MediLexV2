@@ -32,6 +32,7 @@ public class JWTService {
     public String generateAccessToken(Medical medical){
         return Jwts.builder()
                 .subject(medical.getUsername())
+                .claim("role", medical.getAuthorities())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() +1000*60*60))
                 .signWith(getSecretKey())
@@ -41,6 +42,7 @@ public class JWTService {
     public String generateRefreshToken(Medical medical){
         return Jwts.builder()
                 .subject(medical.getUsername())
+                .claim("role", medical.getAuthorities())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() +1000L*60*60*24*30*6))
                 .signWith(getSecretKey())
