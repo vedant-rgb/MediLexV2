@@ -141,7 +141,7 @@ public class MedicalStoreController {
         }
     }
 
-
+    
     @GetMapping("/{id}")
     public ResponseEntity<Medical> getMedicalById(@PathVariable String id) {
         Medical medical = medicalService.getMedicalById(id);

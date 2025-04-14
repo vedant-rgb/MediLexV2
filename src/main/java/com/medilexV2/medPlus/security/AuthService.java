@@ -98,6 +98,16 @@ public class AuthService {
 
     public LoginResponseDTO login(LoginDTO loginDTO) {
         logger.info("Attempting login for email: " + loginDTO.getEmail());
+        if(loginDTO.getRole().equals("ADMIN")){
+            Users admin = userRepository.findByEmail(loginDTO.getEmail())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + loginDTO.getEmail()));
+            if(!passwordEncoder.matches(loginDTO.getPassword(), admin.getPassword())){
+                throw new RuntimeException("Invalid credentials");
+            }
+            String accessToken = jwtService.generateAccessToken(admin);
+            String refreshToken = jwtService.generateRefreshToken(admin);
+            return new LoginResponseDTO(accessToken, refreshToken);
+        }
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
