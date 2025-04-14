@@ -82,8 +82,8 @@ public class MedicalStoreController {
     }
 
     @GetMapping("/lowStockProducts")
-    public ResponseEntity<List<LowStockDTO>> getLowStockProducts() {
-        List<LowStockDTO> lowStockProducts = medicalService.getLowStockItems();
+    public ResponseEntity<List<Products>> getLowStockProducts() {
+        List<Products> lowStockProducts = medicalService.getLowStockItems();
         return ResponseEntity.ok(lowStockProducts);
     }
 

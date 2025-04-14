@@ -246,7 +246,7 @@ public class MedicalService {
         return photos;
     }
 
-    public List<LowStockDTO> getLowStockItems() {
+    public List<Products> getLowStockItems() {
         Users currentuser = getCurrentUser();
         Medical medical = medicalRepository.findByEmail(currentuser.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("No medical found for email " + currentuser.getUsername()));
@@ -259,13 +259,6 @@ public class MedicalService {
                     System.out.println(product.getCurrentStock());
                     System.out.println(product.getQty());
                     return calculateStockPercentage(product.getCurrentStock(), product.getQty()) < 20.0;
-                })
-                .map(product -> {
-                    LowStockDTO lowStockDTO = new LowStockDTO();
-                    lowStockDTO.setProductName(product.getProductName());
-                    lowStockDTO.setCurrentStockQty(product.getCurrentStock());
-                    lowStockDTO.setOriginalStocksQty(product.getQty());
-                    return lowStockDTO;
                 })
                 .toList();
     }
