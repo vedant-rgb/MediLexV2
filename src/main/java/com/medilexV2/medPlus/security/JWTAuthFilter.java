@@ -57,7 +57,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                         () -> new JwtException("User not found with email: " + email)
                 );
                 UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(medical, null, null);
+                        new UsernamePasswordAuthenticationToken(medical, null, medical.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
