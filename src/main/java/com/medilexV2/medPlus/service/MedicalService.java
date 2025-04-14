@@ -178,7 +178,7 @@ public class MedicalService {
         Medical medical = medicalOpt.get();
         List<Products> products = medical.getProducts();
         List<RecentOrders> recentOrders = medical.getRecentOrders();
-        RecentOrders orders = new RecentOrders(billingDTO.getCustomerName(), billingDTO.getTotalAmount());
+        RecentOrders orders = new RecentOrders(billingDTO.getCustomerName(), billingDTO.getTotalAmount(),billingDTO.getPhoneNumber());
         orders.setCreatedAt(LocalDateTime.now());
         recentOrders.add(orders);
 
@@ -254,6 +254,7 @@ public class MedicalService {
         List<Products> products = medical.getProducts();
 
         return products.stream()
+                .filter(product -> product.getCurrentStock() != null && product.getQty() != null)
                 .filter(product -> {
                     System.out.println(product.getProductName());
                     System.out.println(product.getCurrentStock());
@@ -261,10 +262,13 @@ public class MedicalService {
                     return calculateStockPercentage(product.getCurrentStock(), product.getQty()) < 20.0;
                 })
                 .toList();
+
     }
 
-    private Double calculateStockPercentage(int currentStock, int totalStock) {
-        if (totalStock == 0) return 0.0;
+    private Double calculateStockPercentage(Integer currentStock, Integer totalStock) {
+        if (currentStock == null || totalStock == null || totalStock == 0) {
+            return 0.0;
+        }
         return ((double) currentStock / totalStock) * 100;
     }
 

@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 public class RecentOrders {
     private String customerName;
     private Double amount;
+    private String phoneNumber;
 
     @CreatedDate
     private LocalDateTime createdAt;
@@ -15,11 +16,10 @@ public class RecentOrders {
     private LocalDateTime updatedAt;
 
 
-
-
-    public RecentOrders(String customerName, Double amount) {
+    public RecentOrders(String customerName, Double amount, String phoneNumber) {
         this.customerName = customerName;
         this.amount = amount;
+        this.phoneNumber = phoneNumber;
     }
 
     public RecentOrders(String customerName, Double amount, LocalDateTime createdAt, LocalDateTime updatedAt) {
@@ -59,5 +59,13 @@ public class RecentOrders {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 }

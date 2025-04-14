@@ -7,16 +7,16 @@ public class BillingDTO {
     List<BillingInfo> billingInfoList;
     private String customerName;
     private Double totalAmount;
-
+    private String phoneNumber;
 
     public BillingDTO() {
     }
 
-    public BillingDTO(List<BillingInfo> billingInfoList, String customerName, Double totalAmount) {
+    public BillingDTO(List<BillingInfo> billingInfoList, String customerName, Double totalAmount, String phoneNumber) {
         this.billingInfoList = billingInfoList;
         this.customerName = customerName;
         this.totalAmount = totalAmount;
-
+        this.phoneNumber = phoneNumber;
     }
 
     public List<BillingInfo> getBillingInfoList() {
@@ -41,5 +41,13 @@ public class BillingDTO {
 
     public void setTotalAmount(Double totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 }
