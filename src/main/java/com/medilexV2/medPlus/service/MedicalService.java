@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -148,20 +149,22 @@ public class MedicalService {
         medicalRepository.save(medical);
     }
 
-    public List<RecentOrders> getRecentOrders(){
-        Users currentuser = getCurrentUser();
-        Optional<Medical> medicalOpt = medicalRepository.findByEmail(currentuser.getEmail());
+    public List<RecentOrders> getRecentOrders() {
+        Users currentUser = getCurrentUser();
+        Medical medical = medicalRepository.findByEmail(currentUser.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("No medical found for email " + currentUser.getUsername()));
 
-        if (medicalOpt.isEmpty()) {
-            throw new ResourceNotFoundException("No medical found for email " + currentuser.getUsername());
+        List<RecentOrders> recentOrders = medical.getRecentOrders();
+
+        if (recentOrders == null) {
+            return new ArrayList<>();
         }
 
-        Medical medical = medicalOpt.get();
-        List<RecentOrders> recentOrders = medical.getRecentOrders();
-        recentOrders.sort((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()));
+        // Sort by createdAt descending
+        recentOrders.sort(Comparator.comparing(RecentOrders::getCreatedAt).reversed());
         return recentOrders;
-
     }
+
 
 
     public void processBilling(BillingDTO billingDTO) {
