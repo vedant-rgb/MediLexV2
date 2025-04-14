@@ -26,12 +26,12 @@ public class MedPlusApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		Medical admin = new Medical();
-		admin.setEmail("admin@.com");
-		admin.setPassword(passwordEncoder.encode("admin"));
-		admin.setMedicalName("Admin Medical Store");
-		admin.setRole("ROLE_ADMIN");
-		admin.setFirstTimeLogin(true);
-		medicalRepository.save(admin);
+//		Medical admin = new Medical();
+//		admin.setEmail("admin@gmail.com");
+//		admin.setPassword(passwordEncoder.encode("admin"));
+//		admin.setMedicalName("Admin Medical Store");
+//		admin.setRole("ROLE_ADMIN");
+//		admin.setFirstTimeLogin(true);
+//		medicalRepository.save(admin);
 	}
 }

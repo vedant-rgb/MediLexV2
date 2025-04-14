@@ -47,7 +47,7 @@ public class AdminController {
     }
 
     @GetMapping("/getAllMedical")
-    public ResponseEntity<?> getAllMedical() {
+    public ResponseEntity<List<Medical>> getAllMedical() {
         List<Medical> medicals = medicalService.getAllMedical();
         return ResponseEntity.ok(medicals);
     }

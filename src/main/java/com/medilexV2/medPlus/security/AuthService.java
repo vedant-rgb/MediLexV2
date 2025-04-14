@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -65,6 +66,11 @@ public class AuthService {
             newMedical.setPhotos(new ArrayList<>());
             newMedical.setProducts(new ArrayList<>());
             newMedical.setFirstTimeLogin(true);
+            newMedical.setActive(true);
+            newMedical.setCreatedAt(LocalDateTime.now());
+            newMedical.setUpdatedAt(LocalDateTime.now());
+            newMedical.setRole("ROLE_MEDICAL");
+
 
             // Save to DB
             Medical saved = medicalRepository.save(newMedical);
