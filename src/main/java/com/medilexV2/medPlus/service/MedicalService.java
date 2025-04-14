@@ -269,7 +269,7 @@ public class MedicalService {
     }
 
 
-    public List<ExpiringProductDTO> getExpiredAndExpiringProductsNext10Days() {
+    public List<Products> getExpiredAndExpiringProductsNext10Days() {
         Users currentuser = getCurrentUser();
         Optional<Medical> optionalMedical = medicalRepository.findByEmail(currentuser.getEmail());
 
@@ -282,7 +282,7 @@ public class MedicalService {
         LocalDate today = LocalDate.now();
         LocalDate tenDaysLater = today.plusDays(10);
 
-        List<ExpiringProductDTO> result = new ArrayList<>();
+        List<Products> result = new ArrayList<>();
 
         for (Products product : medical.getProducts()) {
             try {
@@ -291,7 +291,7 @@ public class MedicalService {
 
                 // Match expired or expiring within 10 days
                 if (!expDate.isAfter(tenDaysLater)) {
-                    result.add(new ExpiringProductDTO(medical.getMedicalName(), product));
+                    result.add(product);
                 }
             } catch (Exception e) {
                 logger.warning("Invalid expiry format for product: " + product.getProductName() + " - " + product.getExp());

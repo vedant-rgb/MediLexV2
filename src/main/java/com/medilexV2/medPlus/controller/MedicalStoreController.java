@@ -88,8 +88,8 @@ public class MedicalStoreController {
     }
 
     @GetMapping("/getExpiringProducts")
-    public ResponseEntity<List<ExpiringProductDTO>> getExpiringProducts() {
-        List<ExpiringProductDTO> expiringProducts = medicalService.getExpiredAndExpiringProductsNext10Days();
+    public ResponseEntity<List<Products>> getExpiringProducts() {
+        List<Products> expiringProducts = medicalService.getExpiredAndExpiringProductsNext10Days();
         return ResponseEntity.ok(expiringProducts);
     }
 
