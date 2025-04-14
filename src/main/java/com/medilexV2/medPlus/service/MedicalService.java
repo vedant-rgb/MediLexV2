@@ -160,10 +160,12 @@ public class MedicalService {
             return new ArrayList<>();
         }
 
-        // Sort by createdAt descending
-        recentOrders.sort(Comparator.comparing(RecentOrders::getCreatedAt).reversed());
+        // Sort by createdAt descending, handling null values safely
+        recentOrders.sort(Comparator.comparing(RecentOrders::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));
+
         return recentOrders;
     }
+
 
 
 
@@ -190,6 +192,8 @@ public class MedicalService {
         recentOrder.setCustomerName(billingDTO.getCustomerName());
         recentOrder.setAmount(billingDTO.getTotalAmount());
         recentOrder.setPhoneNumber(billingDTO.getPhoneNumber());
+        recentOrder.setCreatedAt(LocalDateTime.now());
+        recentOrder.setUpdatedAt(LocalDateTime.now());
         recentOrders.add(recentOrder);
         medical.setRecentOrders(recentOrders);
 
