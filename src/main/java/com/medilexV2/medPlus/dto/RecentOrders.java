@@ -15,6 +15,8 @@ public class RecentOrders {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    public RecentOrders() {
+    }
 
     public RecentOrders(String customerName, Double amount, String phoneNumber) {
         this.customerName = customerName;

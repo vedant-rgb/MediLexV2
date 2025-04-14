@@ -182,14 +182,18 @@ public class MedicalService {
         logger.info("Medical details: " + medical);
         List<Products> products = medical.getProducts();
         logger.info("Products found: " + products.size());
-//        List<RecentOrders> recentOrders = medical.getRecentOrders();
-//        if (recentOrders == null) {
-//            recentOrders = new ArrayList<>();
-//        }
-//        RecentOrders orders = new RecentOrders(billingDTO.getCustomerName(), billingDTO.getTotalAmount(),billingDTO.getPhoneNumber());
-//        List<RecentOrders> recentOrders1 = medical.getRecentOrders().addAll(billingDTO.getBillingInfoList());
-//        orders.setCreatedAt(LocalDateTime.now());
-//        recentOrders.add(orders);
+        List<RecentOrders> recentOrders = medical.getRecentOrders();
+        if (recentOrders == null) {
+            recentOrders = new ArrayList<>();
+        }
+        RecentOrders recentOrder = new RecentOrders();
+        recentOrder.setCustomerName(billingDTO.getCustomerName());
+        recentOrder.setAmount(billingDTO.getTotalAmount());
+        recentOrder.setPhoneNumber(billingDTO.getPhoneNumber());
+        recentOrders.add(recentOrder);
+        medical.setRecentOrders(recentOrders);
+
+
 
         for (BillingInfo billingInfo : billingDTO.getBillingInfoList()) {
             boolean updated = false;
@@ -339,4 +343,28 @@ public class MedicalService {
 
         return product;
     }
+
+    public List<BillingProducts> getProductsForBilling() {
+        List<Products> products = getProducts();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-yy");
+        LocalDate today = LocalDate.now();
+
+        List<BillingProducts> billingProducts = new ArrayList<>();
+
+        for (Products product : products) {
+            try {
+                YearMonth yearMonth = YearMonth.parse(product.getExp(), formatter);
+                LocalDate expDate = yearMonth.atEndOfMonth(); // Expiry is end of the month
+
+                if (expDate.isAfter(today) && product.getCurrentStock()!=0) {
+                    billingProducts.add(modelMapper.map(product, BillingProducts.class));
+                }
+            } catch (Exception e) {
+                logger.warning("Invalid expiry format for product: " + product.getProductName() + " - " + product.getExp());
+            }
+        }
+
+        return billingProducts;
+    }
+
 }

@@ -98,6 +98,11 @@ public class MedicalStoreController {
         return ResponseEntity.ok(medicalService.getRecentOrders());
     }
 
+    @GetMapping("/getProductsForBilling")
+    public ResponseEntity<List<BillingProducts>> getProductsForBilling(){
+        return ResponseEntity.ok(medicalService.getProductsForBilling());
+    }
+
 
     @PutMapping("/product/update")
     public ResponseEntity<Products> updateProduct(@RequestBody Products product) {
