@@ -168,19 +168,28 @@ public class MedicalService {
 
 
     public void processBilling(BillingDTO billingDTO) {
+        logger.info("Processing billing for customer: " + billingDTO.getCustomerName());
         Users currentuser = getCurrentUser();
+        logger.info("Current user: " + currentuser.getEmail());
         Optional<Medical> medicalOpt = medicalRepository.findByEmail(currentuser.getEmail());
+        logger.info("Medical found: " + medicalOpt.isPresent());
 
         if (medicalOpt.isEmpty()) {
             throw new ResourceNotFoundException("No medical found for email " + currentuser.getUsername());
         }
 
         Medical medical = medicalOpt.get();
+        logger.info("Medical details: " + medical);
         List<Products> products = medical.getProducts();
-        List<RecentOrders> recentOrders = medical.getRecentOrders();
-        RecentOrders orders = new RecentOrders(billingDTO.getCustomerName(), billingDTO.getTotalAmount(),billingDTO.getPhoneNumber());
-        orders.setCreatedAt(LocalDateTime.now());
-        recentOrders.add(orders);
+        logger.info("Products found: " + products.size());
+//        List<RecentOrders> recentOrders = medical.getRecentOrders();
+//        if (recentOrders == null) {
+//            recentOrders = new ArrayList<>();
+//        }
+//        RecentOrders orders = new RecentOrders(billingDTO.getCustomerName(), billingDTO.getTotalAmount(),billingDTO.getPhoneNumber());
+//        List<RecentOrders> recentOrders1 = medical.getRecentOrders().addAll(billingDTO.getBillingInfoList());
+//        orders.setCreatedAt(LocalDateTime.now());
+//        recentOrders.add(orders);
 
         for (BillingInfo billingInfo : billingDTO.getBillingInfoList()) {
             boolean updated = false;
