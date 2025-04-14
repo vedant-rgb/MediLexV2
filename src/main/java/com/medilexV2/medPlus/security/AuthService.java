@@ -3,8 +3,10 @@ package com.medilexV2.medPlus.security;
 
 import com.medilexV2.medPlus.dto.*;
 import com.medilexV2.medPlus.entity.Medical;
+import com.medilexV2.medPlus.entity.Users;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
 import com.medilexV2.medPlus.repository.MedicalRepository;
+import com.medilexV2.medPlus.repository.UserRepository;
 import com.medilexV2.medPlus.service.MedicalService;
 import com.medilexV2.medPlus.thirdPartyService.OcrService;
 import org.apache.logging.log4j.Logger;
@@ -32,14 +34,17 @@ public class AuthService {
     private final MedicalService medicalService;
     private final MedicalRepository medicalRepository;
     Logger logger = org.apache.logging.log4j.LogManager.getLogger(AuthService.class);
+    private final UserRepository userRepository;
 
-    public AuthService(PasswordEncoder passwordEncoder, ModelMapper modelMapper, AuthenticationManager authenticationManager, JWTService jwtService, MedicalService medicalService, MedicalRepository medicalRepository) {
+    public AuthService(PasswordEncoder passwordEncoder, ModelMapper modelMapper, AuthenticationManager authenticationManager, JWTService jwtService, MedicalService medicalService, MedicalRepository medicalRepository,
+                       UserRepository userRepository) {
         this.passwordEncoder = passwordEncoder;
         this.modelMapper = modelMapper;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.medicalService = medicalService;
         this.medicalRepository = medicalRepository;
+        this.userRepository = userRepository;
     }
 
     public String signUp(SignUpRequest signUpRequest) {
@@ -52,10 +57,18 @@ public class AuthService {
                 throw new RuntimeException("Medical is already registered with the email: " + signUpRequest.getEmail());
             }
 
+            Users users = new Users();
+            users.setEmail(signUpRequest.getEmail());
+            users.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
+            users.setRole("STORE");
+            users.setCreatedAt(LocalDateTime.now());
+            users.setUpdatedAt(LocalDateTime.now());
+            users.setMedicalEmail(signUpRequest.getEmail());
+            userRepository.save(users);
+
             // Create GeoJsonPoint from coordinates
             GeoJsonPoint geoPoint = new GeoJsonPoint(signUpRequest.getLongitude(), signUpRequest.getLatitude());
 
-            // Create new Medical object and set fields manually
             Medical newMedical = new Medical();
             newMedical.setEmail(signUpRequest.getEmail());
             newMedical.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
@@ -69,8 +82,6 @@ public class AuthService {
             newMedical.setActive(true);
             newMedical.setCreatedAt(LocalDateTime.now());
             newMedical.setUpdatedAt(LocalDateTime.now());
-            newMedical.setRole("ROLE_MEDICAL");
-
 
             // Save to DB
             Medical saved = medicalRepository.save(newMedical);
@@ -85,19 +96,19 @@ public class AuthService {
     }
 
 
-
-
-
     public LoginResponseDTO login(LoginDTO loginDTO) {
-        logger.info("Logging the medical "+loginDTO.getEmail());
+        logger.info("Attempting login for email: " + loginDTO.getEmail());
+
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
+                new UsernamePasswordAuthenticationToken(
+                        loginDTO.getEmail(), loginDTO.getPassword())
         );
 
-        Medical medical = (Medical) authentication.getPrincipal();
-        logger.info("Found the medical "+medical);
-        String accessToken = jwtService.generateAccessToken(medical);
-        String refreshToken = jwtService.generateRefreshToken(medical);
+        Users user = (Users) authentication.getPrincipal(); // Cast to Users
+        logger.info("Authenticated user: " + user.getEmail());
+
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
 
         return new LoginResponseDTO(accessToken, refreshToken);
     }
@@ -106,26 +117,21 @@ public class AuthService {
     public LoginResponseDTO refreshToken(String refreshToken) {
         String email = jwtService.getEmailFromToken(refreshToken);
 
-        Medical medical = medicalRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + email));
+        // Fetch the user from the repository using email
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
-        String accessToken = jwtService.generateAccessToken(medical);
+        // Generate a new access token for the user
+        String accessToken = jwtService.generateAccessToken(user);
 
+        // Return the new access token and the original refresh token
         return new LoginResponseDTO(accessToken, refreshToken);
     }
 
 
-    public Boolean checkIsFirstTimeLogin() {
-        Medical currUser = getCurrentuser();
-        Medical user = medicalRepository.findByEmail(currUser.getEmail()).orElseThrow(() -> new ResourceNotFoundException("Medical not found for email : " + currUser.getUsername()));
-        if(user.getFirstTimeLogin().equals(true)){
-            return true;
-        }
-        return false;
-    }
 
     public String resetPassword(ResetPasswordDTO resetPasswordDTO) {
-        Medical currUser = getCurrentuser();
+        Users currUser = getCurrentUser();
         Medical user = medicalRepository.findByEmail(currUser.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Medical not found for email : " + currUser.getUsername()));
         String encoded = passwordEncoder.encode(resetPasswordDTO.getOldPassword());
@@ -139,8 +145,9 @@ public class AuthService {
     }
 
 
-    private Medical getCurrentuser(){
-        return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    private Users getCurrentUser() {
+        return (Users) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
+
 
 }

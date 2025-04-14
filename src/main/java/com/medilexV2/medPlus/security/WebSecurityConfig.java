@@ -50,8 +50,7 @@ public class WebSecurityConfig {
                 .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/**",
-                                "/medical-location/**"
+                                "/auth/**"
                         ).permitAll()
                         .anyRequest().authenticated()
 

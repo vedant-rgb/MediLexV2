@@ -23,6 +23,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginDTO loginDTO, HttpServletResponse response) {
+
         LoginResponseDTO loginResponse = authService.login(loginDTO);
 
         Cookie cookie = new Cookie("refreshToken", loginResponse.getRefreshToken());
@@ -38,10 +39,6 @@ public class AuthController {
 
 
 
-    @GetMapping("/checkIsFirstTimeLogin")
-    public ResponseEntity<Boolean> checkIsFirstTimeLogin(){
-        return ResponseEntity.ok(authService.checkIsFirstTimeLogin());
-    }
 
     @PostMapping("/resetPassword")
     public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDTO resetPasswordDTO){

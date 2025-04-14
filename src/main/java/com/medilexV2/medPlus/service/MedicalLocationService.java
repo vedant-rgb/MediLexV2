@@ -5,6 +5,7 @@ import com.medilexV2.medPlus.dto.NearbyMedicalProductDTO;
 import com.medilexV2.medPlus.dto.Products;
 import com.medilexV2.medPlus.entity.Medical;
 import com.medilexV2.medPlus.entity.MedicalLocation;
+import com.medilexV2.medPlus.entity.Users;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
 import com.medilexV2.medPlus.repository.MedicalLocationRepository;
 import com.medilexV2.medPlus.repository.MedicalRepository;
@@ -30,7 +31,7 @@ public class MedicalLocationService {
 
     public String saveLocation(double longitude, double latitude) {
         // Create a new MedicalLocation object
-        String email = getCurrentuser().getEmail();
+        String email = getCurrentUser().getEmail();
         if(!medicalRepository.findByEmail(email).isPresent()){
             throw new ResourceNotFoundException("Medical not found with email: " + email);
         }
@@ -94,9 +95,10 @@ public class MedicalLocationService {
 
     }
 
-    private Medical getCurrentuser(){
-        return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    private Users getCurrentUser() {
+        return (Users) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
+
 
     public List<MedicalLocation> findAllLocations() {
         return medicalLocationRepository.findAll();

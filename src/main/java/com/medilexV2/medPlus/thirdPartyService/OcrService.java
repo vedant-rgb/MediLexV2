@@ -4,6 +4,7 @@ import com.medilexV2.medPlus.dto.OcrResponse;
 import com.medilexV2.medPlus.dto.Products;
 import com.medilexV2.medPlus.entity.InvoiceNumber;
 import com.medilexV2.medPlus.entity.Medical;
+import com.medilexV2.medPlus.entity.Users;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
 import com.medilexV2.medPlus.repository.InvoiceNumberRepository;
 import com.medilexV2.medPlus.repository.MedicalRepository;
@@ -82,7 +83,7 @@ public class OcrService {
             logger.info("Extracted invoice number: " + invoiceNumber); // Should now show "CR/98"
             logger.info("Extracted products: " + products);
 
-            Medical currentUser = getCurrentUser();
+            Users currentUser = getCurrentUser();
             logger.info("Current user: " + currentUser);
 
             Optional<InvoiceNumber> byInvoiceNumber = invoiceNumberRepository.findByInvoiceNumberAndEmail(invoiceNumber, currentUser.getEmail());
@@ -97,15 +98,15 @@ public class OcrService {
 
 
 
-            Medical medical = medicalRepository.findByEmail(currentUser.getUsername())
+            Medical medical = medicalRepository.findByEmail(currentUser.getEmail())
                     .orElseThrow(() -> new ResourceNotFoundException("No medical found"));
-            logger.info("Medical email: " + medical.getUsername());
+
 
             medical.getProducts().addAll(products);
 
 
             Medical saved = medicalRepository.save(medical);
-            logger.info("Saved Medical email: " + saved.getUsername());
+            logger.info("Saved Medical email: " + saved.getEmail());
             logger.info(saved);
 
             return products;
@@ -115,7 +116,8 @@ public class OcrService {
         }
     }
 
-    private Medical getCurrentUser() {
-        return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    private Users getCurrentUser() {
+        return (Users) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
+
 }

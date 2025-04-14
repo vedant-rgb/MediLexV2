@@ -2,6 +2,7 @@ package com.medilexV2.medPlus.service;
 
 import com.medilexV2.medPlus.dto.*;
 import com.medilexV2.medPlus.entity.Medical;
+import com.medilexV2.medPlus.entity.Users;
 import com.medilexV2.medPlus.exceptions.ResourceNotFoundException;
 import com.medilexV2.medPlus.repository.MedicalLocationRepository;
 import com.medilexV2.medPlus.repository.MedicalRepository;
@@ -14,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +41,7 @@ public class MedicalService {
     }
 
     public List<Products> getProducts() {
-        Medical currentuser = getCurrentuser();
+        Users currentuser = getCurrentUser();
         Optional<Medical> medical = medicalRepository.findByEmail(currentuser.getEmail());
 
         if (medical.isEmpty()) {
@@ -50,7 +52,7 @@ public class MedicalService {
     }
 
     public Integer getProductsCount() {
-        Medical currentuser = getCurrentuser();
+        Users currentuser = getCurrentUser();
         Optional<Medical> medical = medicalRepository.findByEmail(currentuser.getEmail());
 
         if (medical.isEmpty()) {
@@ -76,52 +78,52 @@ public class MedicalService {
     }
 
     public Products updateProductField(Products product) {
-        Medical currentuser = getCurrentuser();
-        Optional<Medical> medical = medicalRepository.findByEmail(currentuser.getEmail());
+        Users currentuser = getCurrentUser();
+        Optional<Medical> medicalOpt = medicalRepository.findByEmail(currentuser.getEmail());
 
-        if (medical.isEmpty()) {
+        if (medicalOpt.isEmpty()) {
             throw new ResourceNotFoundException("No medical found for email " + currentuser.getUsername());
         }
 
-        Medical toBeUpdate = medical.get();
-        List<Products> products = toBeUpdate.getProducts();
+        Medical medical = medicalOpt.get();
+        List<Products> products = medical.getProducts();
 
-        Products[] updatedProduct = new Products[1]; // to capture result from lambda
+        boolean updated = false;
 
-        products.stream()
-                .filter(entry ->
-                        entry.getHsn().equals(product.getHsn()) &&
-                                entry.getProductName().equals(product.getProductName()) &&
-                                entry.getBatch().equals(product.getBatch()) &&
-                                entry.getExp().equals(product.getExp())
-                )
-                .findFirst()
-                .ifPresentOrElse(found -> {
-                    found.setHsn(product.getHsn());
-                    found.setProductName(product.getProductName());
-                    found.setAmount(product.getAmount());
-                    found.setBatch(product.getBatch());
-                    found.setExp(product.getExp());
-                    found.setGst(product.getGst());
-                    found.setMrp(product.getMrp());
-                    found.setMfg(product.getMfg());
-                    found.setPtr(product.getPtr());
-                    found.setQty(product.getQty());
-                    found.setSch(product.getSch());
-                    found.setUnit(product.getUnit());
-                    found.setRate(product.getRate());
-                    updatedProduct[0] = found;
-                }, () -> {
-                    throw new ResourceNotFoundException("No product with given constraints found");
-                });
+        for (Products existingProduct : products) {
+            if (existingProduct.getHsn().equals(product.getHsn()) &&
+                    existingProduct.getProductName().equals(product.getProductName()) &&
+                    existingProduct.getBatch().equals(product.getBatch()) &&
+                    existingProduct.getExp().equals(product.getExp())) {
 
-        medicalRepository.save(toBeUpdate);
+                // Set all fields from input
+                existingProduct.setMfg(product.getMfg());
+                existingProduct.setUnit(product.getUnit());
+                existingProduct.setQty(product.getQty());
+                existingProduct.setCurrentStock(product.getCurrentStock());
+                existingProduct.setSch(product.getSch());
+                existingProduct.setMrp(product.getMrp());
+                existingProduct.setRate(product.getRate());
+                existingProduct.setPtr(product.getPtr());
+                existingProduct.setGst(product.getGst());
+                existingProduct.setAmount(product.getAmount());
 
-        return updatedProduct[0];
+                updated = true;
+                break;
+            }
+        }
+
+        if (!updated) {
+            throw new ResourceNotFoundException("Product not found for update");
+        }
+
+        medicalRepository.save(medical);
+        return product;
     }
 
+
     public void deleteProduct(String hsn, String productName, String batch, String exp) {
-        Medical currentuser = getCurrentuser();
+        Users currentuser = getCurrentUser();
         Optional<Medical> medicalOpt = medicalRepository.findByEmail(currentuser.getEmail());
 
         if (medicalOpt.isEmpty()) {
@@ -147,11 +149,11 @@ public class MedicalService {
     }
 
     public List<RecentOrders> getRecentOrders(){
-        Medical currentUser = getCurrentuser();
-        Optional<Medical> medicalOpt = medicalRepository.findByEmail(currentUser.getEmail());
+        Users currentuser = getCurrentUser();
+        Optional<Medical> medicalOpt = medicalRepository.findByEmail(currentuser.getEmail());
 
         if (medicalOpt.isEmpty()) {
-            throw new ResourceNotFoundException("No medical found for email " + currentUser.getUsername());
+            throw new ResourceNotFoundException("No medical found for email " + currentuser.getUsername());
         }
 
         Medical medical = medicalOpt.get();
@@ -163,11 +165,11 @@ public class MedicalService {
 
 
     public void processBilling(BillingDTO billingDTO) {
-        Medical currentUser = getCurrentuser();
-        Optional<Medical> medicalOpt = medicalRepository.findByEmail(currentUser.getEmail());
+        Users currentuser = getCurrentUser();
+        Optional<Medical> medicalOpt = medicalRepository.findByEmail(currentuser.getEmail());
 
         if (medicalOpt.isEmpty()) {
-            throw new ResourceNotFoundException("No medical found for email " + currentUser.getUsername());
+            throw new ResourceNotFoundException("No medical found for email " + currentuser.getUsername());
         }
 
         Medical medical = medicalOpt.get();
@@ -219,7 +221,7 @@ public class MedicalService {
     }
 
     public Medical uploadMedicalPhotos(List<MultipartFile> files) throws IOException {
-        Medical medical = medicalRepository.findById(getCurrentuser().getId()).orElseThrow(() -> new RuntimeException("Medical not found"));
+        Medical medical = medicalRepository.findById(getCurrentUser().getId()).orElseThrow(() -> new RuntimeException("Medical not found"));
 
         List<String> photoUrls = new ArrayList<>();
         for (MultipartFile file : files) {
@@ -232,7 +234,7 @@ public class MedicalService {
     }
 
     public List<String> getAllPhotos() {
-        Medical medical = medicalRepository.findById(getCurrentuser().getId())
+        Medical medical = medicalRepository.findById(getCurrentUser().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Medical not found"));
         List<String> photos = medical.getPhotos();
         if (photos == null || photos.isEmpty()) {
@@ -241,27 +243,38 @@ public class MedicalService {
         return photos;
     }
 
-    public List<LowStockDTO> getLowStockItems(){
-        Medical currentuser = getCurrentuser();
-        Optional<Medical> medical = medicalRepository.findByEmail(currentuser.getEmail());
-        if (medical.isEmpty()) {
-            throw new ResourceNotFoundException("No medical found for email " + currentuser.getUsername());
-        }
-        List<Products> products = medical.get().getProducts();
+    public List<LowStockDTO> getLowStockItems() {
+        Users currentuser = getCurrentUser();
+        Medical medical = medicalRepository.findByEmail(currentuser.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("No medical found for email " + currentuser.getUsername()));
+
+        List<Products> products = medical.getProducts();
+
         return products.stream()
-                .filter(product->givePercentageValue(product.getCurrentStock(),product.getQty()) <20.00 )
-                .map(products1 -> {
+                .filter(product -> {
+                    System.out.println(product.getProductName());
+                    System.out.println(product.getCurrentStock());
+                    System.out.println(product.getQty());
+                    return calculateStockPercentage(product.getCurrentStock(), product.getQty()) < 20.0;
+                })
+                .map(product -> {
                     LowStockDTO lowStockDTO = new LowStockDTO();
-                    lowStockDTO.setProductName(products1.getProductName());
-                    lowStockDTO.setCurrentStockQty(products1.getCurrentStock());
-                    lowStockDTO.setOriginalStocksQty(products1.getQty());
+                    lowStockDTO.setProductName(product.getProductName());
+                    lowStockDTO.setCurrentStockQty(product.getCurrentStock());
+                    lowStockDTO.setOriginalStocksQty(product.getQty());
                     return lowStockDTO;
                 })
                 .toList();
     }
 
+    private Double calculateStockPercentage(int currentStock, int totalStock) {
+        if (totalStock == 0) return 0.0;
+        return ((double) currentStock / totalStock) * 100;
+    }
+
+
     public List<ExpiringProductDTO> getExpiredAndExpiringProductsNext10Days() {
-        Medical currentuser = getCurrentuser();
+        Users currentuser = getCurrentUser();
         Optional<Medical> optionalMedical = medicalRepository.findByEmail(currentuser.getEmail());
 
         if (optionalMedical.isEmpty()) {
@@ -269,7 +282,7 @@ public class MedicalService {
         }
 
         Medical medical = optionalMedical.get();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-yy");
         LocalDate today = LocalDate.now();
         LocalDate tenDaysLater = today.plusDays(10);
 
@@ -277,14 +290,15 @@ public class MedicalService {
 
         for (Products product : medical.getProducts()) {
             try {
-                LocalDate expDate = LocalDate.parse(product.getExp(), formatter).withYear(today.getYear());
+                YearMonth yearMonth = YearMonth.parse(product.getExp(), formatter);
+                LocalDate expDate = yearMonth.atEndOfMonth(); // Sets expiry as last day of that month
 
-                // Adjust expired logic if needed (e.g., Dec → Jan)
+                // Match expired or expiring within 10 days
                 if (!expDate.isAfter(tenDaysLater)) {
                     result.add(new ExpiringProductDTO(medical.getMedicalName(), product));
                 }
             } catch (Exception e) {
-                logger.warning("Invalid date format for: " + product.getProductName() + " - " + product.getExp());
+                logger.warning("Invalid expiry format for product: " + product.getProductName() + " - " + product.getExp());
             }
         }
 
@@ -292,21 +306,14 @@ public class MedicalService {
     }
 
 
-
-    private Double givePercentageValue(int currentStock, int totalStock){
-        if(currentStock == 0){
-            return 0.0;
-        }
-        return ((double) currentStock / totalStock) * 100;
+    private Users getCurrentUser() {
+        return (Users) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
-    private Medical getCurrentuser(){
-        return (Medical) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    }
 
 
     public Products addProduct(Products product) {
-        Medical currentuser = getCurrentuser();
+        Users currentuser = getCurrentUser();
         Optional<Medical> medical = medicalRepository.findByEmail(currentuser.getEmail());
 
         if (medical.isEmpty()) {

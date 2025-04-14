@@ -8,14 +8,13 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
 @Document(collection = "MedicalStore")
-public class Medical implements UserDetails {
+public class Medical {
     @Id
     private String id;
 
@@ -30,7 +29,6 @@ public class Medical implements UserDetails {
     private List<Products> products;
     private Boolean active;
     private List<RecentOrders> recentOrders;
-    private String role;
     @CreatedDate
     private LocalDateTime createdAt;
 
@@ -40,7 +38,7 @@ public class Medical implements UserDetails {
     public Medical() {
     }
 
-    public Medical(String id, String email, String password, String medicalName, String medicalAddress, String licenseNumber, String contactNumber, Boolean firstTimeLogin, List<String> photos, List<Products> products, Boolean active, List<RecentOrders> recentOrders, String role, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Medical(String id, String email, String password, String medicalName, String medicalAddress, String licenseNumber, String contactNumber, Boolean firstTimeLogin, List<String> photos, List<Products> products, Boolean active, List<RecentOrders> recentOrders, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -53,7 +51,6 @@ public class Medical implements UserDetails {
         this.products = products;
         this.active = active;
         this.recentOrders = recentOrders;
-        this.role = role;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -158,13 +155,7 @@ public class Medical implements UserDetails {
         this.active = active;
     }
 
-    public String getRole() {
-        return role;
-    }
 
-    public void setRole(String role) {
-        this.role = role;
-    }
 
     public List<RecentOrders> getRecentOrders() {
         return recentOrders;
@@ -187,20 +178,6 @@ public class Medical implements UserDetails {
                 '}';
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role));
-    }
 
-
-    @Override
-    public String getPassword() {
-        return this.password;
-    }
-
-    @Override
-    public String getUsername() {
-        return this.email;
-    }
 
 }

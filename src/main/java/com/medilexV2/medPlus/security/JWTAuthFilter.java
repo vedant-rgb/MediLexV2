@@ -2,6 +2,7 @@ package com.medilexV2.medPlus.security;
 
 
 import com.medilexV2.medPlus.entity.Medical;
+import com.medilexV2.medPlus.entity.Users;
 import com.medilexV2.medPlus.repository.MedicalRepository;
 import com.medilexV2.medPlus.service.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -52,14 +53,17 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             String email = jwtService.getEmailFromToken(token);
             logger.info("CURRENT LOGIN : " + email);
             //TODO:email should be null or not null
-            if (email == null || SecurityContextHolder.getContext().getAuthentication() == null) {
-                Medical medical = medicalRepository.findByEmail(email).orElseThrow(
-                        () -> new JwtException("User not found with email: " + email)
-                );
-                UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(medical, null, medical.getAuthorities());
-                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                Users user = (Users) userService.loadUserByUsername(email);
+
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(
+                                user, null, user.getAuthorities());
+
+                authToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
             filterChain.doFilter(request, response);
         }catch (ExpiredJwtException ex) {
